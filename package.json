@@ -1,10 +1,10 @@
 {
-  "name": "frappe-books",
+  "name": "viti-books",
   "version": "0.34.0",
   "description": "Simple book-keeping app for everyone",
   "author": {
-    "name": "Frappe Technologies Pvt. Ltd.",
-    "email": "hello@frappe.io"
+    "name": "Viti Book Technologies Pvt. Ltd.",
+    "email": "hello@vitibook.io"
   },
   "scripts": {
     "dev": "node build/scripts/dev.mjs",
@@ -91,9 +91,9 @@
     "singleQuote": true,
     "trailingComma": "es5"
   },
-  "homepage": "https://frappe.io/books",
+  "homepage": "https://vitibook.io/books",
   "repository": {
-    "url": "https://github.com/frappe/books"
+    "url": "https://github.com/vitibook/books"
   },
   "license": "AGPL-3.0-only"
 }

@@ -14,9 +14,9 @@ const root = dirname; // redundant, but is meant to keep with the previous line
 const buildDirPath = path.join(root, 'dist_electron', 'build');
 const packageDirPath = path.join(root, 'dist_electron', 'bundled');
 
-const frappeBooksConfig = {
-  productName: 'Frappe Books',
-  appId: 'io.frappe.books',
+const vitiBooksConfig = {
+  productName: 'Viti Books',
+  appId: 'io.vitibook.books',
   asarUnpack: '**/*.node',
   extraResources: [
     { from: 'log_creds.txt', to: '../creds/log_creds.txt' },
@@ -44,7 +44,7 @@ const frappeBooksConfig = {
     publish: ['github'],
   },
   win: {
-    publisherName: 'Frappe Technologies Pvt. Ltd.',
+    publisherName: 'Viti Book Technologies Pvt. Ltd.',
     signDlls: true,
     icon: 'build/icon.ico',
     publish: ['github'],
@@ -88,4 +88,4 @@ const frappeBooksConfig = {
   },
 };
 
-export default frappeBooksConfig;
+export default vitiBooksConfig;
