@@ -11,11 +11,7 @@
       fill="#505A62"
     />
     <path
-      d="M7.73114 2.75564V0.75855H0.0548096V2.75564H7.73114Z"
-      fill="#2490EF"
-    />
-    <path
-      d="M2.48876 7.43646H7.35669V5.43935H0.0548096V12.1796H2.48876V7.43646Z"
+      d="M7.73114 2.75564L5.8 8.5L3.9 2.75564H0.0548096L3.5 12.1796H6.1L10.2 2.75564H7.73114Z"
       fill="#2490EF"
     />
   </svg>
@@ -23,7 +19,7 @@
 <script>
 import Base from '../base.vue';
 export default {
-  name: 'FB',
+  name: 'VB',
   extends: Base,
 };
 </script>

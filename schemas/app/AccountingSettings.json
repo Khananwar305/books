@@ -6,8 +6,8 @@
   "isSubmittable": false,
   "fields": [
     {
-      "label": "Full Name",
-      "fieldname": "fullname",
+      "label": "Mailing Name",
+      "fieldname": "mailingName",
       "fieldtype": "Data",
       "required": true,
       "section": "Default"
@@ -18,6 +18,30 @@
       "fieldtype": "Data",
       "readOnly": true,
       "required": true,
+      "section": "Default"
+    },
+    {
+      "label": "Address",
+      "fieldname": "address",
+      "fieldtype": "Text",
+      "section": "Default"
+    },
+    {
+      "label": "State/Province",
+      "fieldname": "district",
+      "fieldtype": "AutoComplete",
+      "section": "Default"
+    },
+    {
+      "label": "Pin Code",
+      "fieldname": "pincode",
+      "fieldtype": "Data",
+      "section": "Default"
+    },
+    {
+      "label": "Telephone No",
+      "fieldname": "phone",
+      "fieldtype": "Data",
       "section": "Default"
     },
     {
@@ -186,7 +210,11 @@
     }
   ],
   "quickEditFields": [
-    "fullname",
+    "mailingName",
+    "address",
+    "district",
+    "pincode",
+    "phone",
     "email",
     "companyName",
     "country",

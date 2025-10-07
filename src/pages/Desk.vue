@@ -11,6 +11,7 @@ import { toggleSidebar } from 'src/utils/ui';
         class="
           flex-shrink-0
           border-e
+          border-gray-300
           dark:border-gray-800
           whitespace-nowrap
           w-sidebar
@@ -25,7 +26,7 @@ import { toggleSidebar } from 'src/utils/ui';
         flex flex-1
         overflow-y-hidden
         custom-scroll custom-scroll-thumb1
-        bg-white
+        bg-gray-25
         dark:bg-gray-875
       "
     >

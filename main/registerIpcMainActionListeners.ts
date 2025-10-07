@@ -55,7 +55,7 @@ export default function registerIpcMainActionListeners(main: Main) {
         root = 'dbs';
       }
 
-      const dbsPath = path.join(root, 'Frappe Books');
+      const dbsPath = path.join(root, 'Viti Books');
       const backupPath = path.join(dbsPath, 'backups');
       await fs.ensureDir(backupPath);
 
@@ -276,6 +276,15 @@ export default function registerIpcMainActionListeners(main: Main) {
     async (_, dbPath: string, countryCode?: string) => {
       return await getErrorHandledReponse(async () => {
         return await databaseManager.connectToDatabase(dbPath, countryCode);
+      });
+    }
+  );
+
+  ipcMain.handle(
+    IPC_ACTIONS.DB_CONNECT_MARIADB,
+    async (_, config: any, countryCode?: string) => {
+      return await getErrorHandledReponse(async () => {
+        return await databaseManager.connectToMariaDB(config, countryCode);
       });
     }
   );

@@ -23,7 +23,7 @@
             {{ d.account }}
           </p>
           <p class="whitespace-nowrap flex-shrink-0 ms-auto">
-            {{ fyo.format(d?.total ?? 0, 'Currency') }}
+            {{ formatCurrency(d?.total ?? 0) }}
           </p>
         </div>
       </div>
@@ -34,7 +34,7 @@
         :offset-x="3"
         :thickness="10"
         :text-offset-x="6.5"
-        :value-formatter="(value: number) => fyo.format(value, 'Currency')"
+        :value-formatter="(value: number) => formatCurrency(value)"
         :total-label="t`Total Spending`"
         :dark-mode="darkMode"
         @change="(value: number) => (active = value)"
@@ -80,6 +80,7 @@ export default defineComponent({
   extends: DashboardChartBase,
   props: {
     darkMode: { type: Boolean, default: false },
+    currencyFormat: { type: String, default: 'actual' },
   },
   data: () => ({
     active: null as null | number,
@@ -148,6 +149,47 @@ export default defineComponent({
             class: { class: shades[i].class, darkClass: darkshades[i].class },
           };
         });
+    },
+    formatCurrency(value: number): string {
+      const numValue = typeof value === 'string' ? parseFloat(value) : value;
+
+      if (isNaN(numValue)) {
+        return '₹0';
+      }
+
+      let formattedValue;
+      let suffix = '';
+
+      switch (this.currencyFormat) {
+        case 'crores':
+          formattedValue = (numValue / 10000000).toFixed(2);
+          suffix = ' Cr';
+          break;
+        case 'lakhs':
+          formattedValue = (numValue / 100000).toFixed(2);
+          suffix = ' L';
+          break;
+        case 'thousands':
+          formattedValue = (numValue / 1000).toFixed(2);
+          suffix = ' K';
+          break;
+        case 'millions':
+          formattedValue = (numValue / 1000000).toFixed(2);
+          suffix = ' M';
+          break;
+        case 'actual':
+        default:
+          formattedValue = numValue.toLocaleString('en-IN', {
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 2,
+          });
+          return `₹${formattedValue}`;
+      }
+
+      // Remove trailing zeros
+      formattedValue = parseFloat(formattedValue).toString();
+
+      return `₹${formattedValue}${suffix}`;
     },
   },
 });

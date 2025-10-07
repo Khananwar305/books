@@ -27,6 +27,29 @@ export const sqliteTypeMap: Record<string, KnexColumnType> = {
   Color: 'text',
 };
 
+export const mariadbTypeMap: Record<string, KnexColumnType> = {
+  AutoComplete: 'text',
+  Currency: 'decimal',
+  Int: 'integer',
+  Float: 'decimal',
+  Percent: 'decimal',
+  Check: 'boolean',
+  Code: 'text',
+  Date: 'date',
+  Datetime: 'datetime',
+  Time: 'time',
+  Text: 'text',
+  Data: 'text',
+  Secret: 'text',
+  Link: 'varchar',
+  DynamicLink: 'varchar',
+  Password: 'varchar',
+  Select: 'varchar',
+  Attachment: 'text',
+  AttachImage: 'text',
+  Color: 'varchar',
+};
+
 export const SYSTEM = '__SYSTEM__';
 export const validTypes = Object.keys(sqliteTypeMap);
 export function getDefaultMetaFieldValueMap() {

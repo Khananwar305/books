@@ -27,31 +27,9 @@ function getFilteredSidebar(sideBar: SidebarConfig): SidebarConfig {
 }
 
 function getRegionalSidebar(): SidebarRoot[] {
-  const hasGstin = !!fyo.singles?.AccountingSettings?.gstin;
-  if (!hasGstin) {
-    return [];
-  }
-
-  return [
-    {
-      label: t`GST`,
-      name: 'gst',
-      icon: 'gst',
-      route: '/report/GSTR1',
-      items: [
-        {
-          label: t`GSTR1`,
-          name: 'gstr1',
-          route: '/report/GSTR1',
-        },
-        {
-          label: t`GSTR2`,
-          name: 'gstr2',
-          route: '/report/GSTR2',
-        },
-      ],
-    },
-  ];
+  // GST reports are now accessed via the Reports hub page
+  // No need for a separate sidebar item
+  return [];
 }
 
 function getInventorySidebar(): SidebarRoot[] {
@@ -116,29 +94,7 @@ function getReportSidebar() {
     label: t`Reports`,
     name: 'reports',
     icon: 'reports',
-    route: '/report/GeneralLedger',
-    items: [
-      {
-        label: t`General Ledger`,
-        name: 'general-ledger',
-        route: '/report/GeneralLedger',
-      },
-      {
-        label: t`Profit And Loss`,
-        name: 'profit-and-loss',
-        route: '/report/ProfitAndLoss',
-      },
-      {
-        label: t`Balance Sheet`,
-        name: 'balance-sheet',
-        route: '/report/BalanceSheet',
-      },
-      {
-        label: t`Trial Balance`,
-        name: 'trial-balance',
-        route: '/report/TrialBalance',
-      },
-    ],
+    route: '/reports',
   };
 }
 
@@ -306,43 +262,7 @@ function getCompleteSidebar(): SidebarConfig {
       label: t`Setup`,
       name: 'setup',
       icon: 'settings',
-      route: '/chart-of-accounts',
-      items: [
-        {
-          label: t`Chart of Accounts`,
-          name: 'chart-of-accounts',
-          route: '/chart-of-accounts',
-        },
-        {
-          label: t`Tax Templates`,
-          name: 'taxes',
-          route: '/list/Tax',
-          schemaName: 'Tax',
-        },
-        {
-          label: t`Import Wizard`,
-          name: 'import-wizard',
-          route: '/import-wizard',
-        },
-        {
-          label: t`Print Templates`,
-          name: 'print-template',
-          route: `/list/PrintTemplate/${t`Print Templates`}`,
-        },
-        {
-          label: t`Customize Form`,
-          name: 'customize-form',
-          // route: `/customize-form`,
-          route: `/list/CustomForm/${t`Customize Form`}`,
-          hidden: () =>
-            !fyo.singles.AccountingSettings?.enableFormCustomization,
-        },
-        {
-          label: t`Settings`,
-          name: 'settings',
-          route: '/settings',
-        },
-      ] as SidebarItem[],
+      route: '/setup',
     },
   ].flat();
 }

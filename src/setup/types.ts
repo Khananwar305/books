@@ -2,7 +2,11 @@ export interface SetupWizardOptions {
   logo: string | null;
   companyName: string;
   country: string;
-  fullname: string;
+  mailingName: string;
+  address: string;
+  district: string;
+  pincode: string;
+  phone: string;
   email: string;
   bankName: string;
   currency: string;

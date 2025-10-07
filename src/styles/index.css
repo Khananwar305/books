@@ -7,8 +7,15 @@
 }
 
 * {
-  outline-color: theme('colors.pink.400');
+  outline-color: theme('colors.blue.400');
   font-variation-settings: 'slnt' 0deg;
+}
+
+/* Professional enhancements */
+body {
+  font-smoothing: antialiased;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 .italic {
   font-variation-settings: 'slnt' 10deg;
@@ -21,11 +28,12 @@
 @tailwind utilities;
 
 html {
-  color: theme('colors.black');
+  color: theme('colors.gray.800');
+  background-color: theme('colors.gray.50');
 }
 
 html.dark {
-  color: theme('colors.black');
+  color: theme('colors.gray.100');
   background-color: theme('colors.gray.900');
   color-scheme: dark;
 }
@@ -70,7 +78,7 @@ input[type='number']::-webkit-inner-spin-button {
 }
 
 :root {
-  --w-form: 600px;
+  --w-form: 615px;
   --w-app: 1200px;
   --w-sidebar: 14rem;
   --w-desk: calc(100vw - var(--w-sidebar));
@@ -116,7 +124,7 @@ input[type='number']::-webkit-inner-spin-button {
 }
 
 .h-form {
-  height: 800px;
+  height: 805px;
 }
 
 .h-row-smallest {

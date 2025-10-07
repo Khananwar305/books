@@ -23,7 +23,7 @@
           :title="paidCount > 0 ? t`View Paid Invoices` : ''"
           @click="() => routeToInvoices('paid')"
         >
-          {{ fyo.format(paid, 'Currency') }}
+          {{ formatCurrency(paid) }}
           <span
             :class="{ 'text-gray-900 dark:text-gray-200 font-normal': count }"
             >{{ t`Paid` }}</span
@@ -41,7 +41,7 @@
           :title="unpaidCount > 0 ? t`View Unpaid Invoices` : ''"
           @click="() => routeToInvoices('unpaid')"
         >
-          {{ fyo.format(unpaid, 'Currency') }}
+          {{ formatCurrency(unpaid) }}
           <span
             :class="{ 'text-gray-900 dark:text-gray-200 font-normal': count }"
             >{{ t`Unpaid` }}</span
@@ -125,6 +125,7 @@ export default defineComponent({
   props: {
     schemaName: { type: String as PropType<string>, required: true },
     darkMode: { type: Boolean, default: false },
+    currencyFormat: { type: String, default: 'actual' },
   },
   data() {
     return {
@@ -252,6 +253,47 @@ export default defineComponent({
         countTotal: isOutstanding.length,
         countOutstanding: isOutstanding.filter((o) => o > 0).length,
       };
+    },
+    formatCurrency(value: number): string {
+      const numValue = typeof value === 'string' ? parseFloat(value) : value;
+
+      if (isNaN(numValue)) {
+        return '₹0';
+      }
+
+      let formattedValue;
+      let suffix = '';
+
+      switch (this.currencyFormat) {
+        case 'crores':
+          formattedValue = (numValue / 10000000).toFixed(2);
+          suffix = ' Cr';
+          break;
+        case 'lakhs':
+          formattedValue = (numValue / 100000).toFixed(2);
+          suffix = ' L';
+          break;
+        case 'thousands':
+          formattedValue = (numValue / 1000).toFixed(2);
+          suffix = ' K';
+          break;
+        case 'millions':
+          formattedValue = (numValue / 1000000).toFixed(2);
+          suffix = ' M';
+          break;
+        case 'actual':
+        default:
+          formattedValue = numValue.toLocaleString('en-IN', {
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 2,
+          });
+          return `₹${formattedValue}`;
+      }
+
+      // Remove trailing zeros
+      formattedValue = parseFloat(formattedValue).toString();
+
+      return `₹${formattedValue}${suffix}`;
     },
   },
 });

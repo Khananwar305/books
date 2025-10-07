@@ -2,7 +2,7 @@
   <div
     class="
       flex
-      bg-gray-25
+      bg-gray-50
       dark:bg-gray-875
       overflow-x-auto
       custom-scroll custom-scroll-thumb1
@@ -28,14 +28,15 @@
           flex flex-col
           self-center
           h-full
-          overflow-auto
+          max-h-screen
+          overflow-hidden
           bg-white
           dark:bg-gray-890
         "
         :class="
           useFullWidth
-            ? 'w-full border-t dark:border-gray-800'
-            : 'w-form border dark:border-gray-800 rounded-lg shadow-lg mb-4 mx-4'
+            ? 'w-full border-t border-gray-200 dark:border-gray-800'
+            : 'w-form border border-gray-200 dark:border-gray-800 rounded-lg shadow-lg mb-4 mx-4'
         "
       >
         <slot name="body" />

@@ -136,6 +136,7 @@ export abstract class AccountReport extends LedgerReport {
         value,
         align: 'right',
         width: ACC_BAL_WIDTH,
+        bold: !!al.isGroup,
       } as ReportCell;
     });
 

@@ -39,6 +39,7 @@ export enum IPC_ACTIONS {
   // Database messages
   DB_CREATE = 'db-create',
   DB_CONNECT = 'db-connect',
+  DB_CONNECT_MARIADB = 'db-connect-mariadb',
   DB_CALL = 'db-call',
   DB_BESPOKE = 'db-bespoke',
   DB_SCHEMA = 'db-schema',

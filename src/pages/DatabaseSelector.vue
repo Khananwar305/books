@@ -1,6 +1,6 @@
 <template>
   <div
-    class="flex-1 flex justify-center items-center bg-gray-25 dark:bg-gray-900"
+    class="flex-1 flex justify-center items-center bg-gray-50 dark:bg-gray-900"
     :class="{
       'pointer-events-none': loadingDatabase,
       'window-drag': platform !== 'Windows',
@@ -12,6 +12,7 @@
         shadow-lg
         rounded-lg
         border
+        border-gray-200
         dark:border-gray-800
         relative
         bg-white
@@ -19,10 +20,10 @@
       "
       style="height: 700px"
     >
-      <!-- Welcome to Frappe Books -->
+      <!-- Welcome to Viti Books -->
       <div class="px-4 py-4">
         <h1 class="text-2xl font-semibold select-none dark:text-gray-25">
-          {{ t`Welcome to Frappe Books` }}
+          {{ t`Welcome to Viti Books` }}
         </h1>
         <p class="text-gray-600 dark:text-gray-400 text-base select-none">
           {{
@@ -126,7 +127,7 @@
             {{ t`Create Demo` }}
           </p>
           <p class="text-sm text-gray-600 dark:text-gray-400">
-            {{ t`Create a demo company to try out Frappe Books` }}
+            {{ t`Create a demo company to try out Viti Books` }}
           </p>
         </div>
       </div>

@@ -79,6 +79,7 @@ export default defineComponent({
   extends: DashboardChartBase,
   props: {
     darkMode: { type: Boolean, default: false },
+    currencyFormat: { type: String, default: 'actual' },
   },
   data: () => ({
     data: [] as { inflow: number; outflow: number; yearmonth: string }[],
@@ -106,7 +107,7 @@ export default defineComponent({
         data.map((d) => d[k])
       );
 
-      const format = (value: number) => fyo.format(value ?? 0, 'Currency');
+      const format = (value: number) => this.formatCurrency(value ?? 0);
       const yMax = getYMax(points);
       return {
         points,
@@ -159,6 +160,47 @@ export default defineComponent({
         filters: { account: ['in', accountNames] },
       });
       this.hasData = count > 0;
+    },
+    formatCurrency(value: number): string {
+      const numValue = typeof value === 'string' ? parseFloat(value) : value;
+
+      if (isNaN(numValue)) {
+        return '₹0';
+      }
+
+      let formattedValue;
+      let suffix = '';
+
+      switch (this.currencyFormat) {
+        case 'crores':
+          formattedValue = (numValue / 10000000).toFixed(2);
+          suffix = ' Cr';
+          break;
+        case 'lakhs':
+          formattedValue = (numValue / 100000).toFixed(2);
+          suffix = ' L';
+          break;
+        case 'thousands':
+          formattedValue = (numValue / 1000).toFixed(2);
+          suffix = ' K';
+          break;
+        case 'millions':
+          formattedValue = (numValue / 1000000).toFixed(2);
+          suffix = ' M';
+          break;
+        case 'actual':
+        default:
+          formattedValue = numValue.toLocaleString('en-IN', {
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 2,
+          });
+          return `₹${formattedValue}`;
+      }
+
+      // Remove trailing zeros
+      formattedValue = parseFloat(formattedValue).toString();
+
+      return `₹${formattedValue}${suffix}`;
     },
   },
 });

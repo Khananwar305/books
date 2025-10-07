@@ -9,7 +9,7 @@ import { getSchemas } from '../../schemas';
 import { databaseMethodSet, unlinkIfExists } from '../helpers';
 import patches from '../patches';
 import { BespokeQueries } from './bespoke';
-import DatabaseCore from './core';
+import DatabaseCore, { DatabaseConfig } from './core';
 import { runPatches } from './runPatch';
 import { BespokeFunction, Patch, RawCustomField } from './types';
 
@@ -40,9 +40,25 @@ export class DatabaseManager extends DatabaseDemuxBase {
     return countryCode;
   }
 
+  async connectToMariaDB(config: DatabaseConfig, countryCode?: string) {
+    countryCode = await this._connectWithConfig(config, countryCode);
+    await this.#migrate();
+    return countryCode;
+  }
+
   async _connect(dbPath: string, countryCode?: string) {
     countryCode ??= await DatabaseCore.getCountryCode(dbPath);
     this.db = new DatabaseCore(dbPath);
+    await this.db.connect();
+    await this.setRawCustomFields();
+    const schemaMap = getSchemas(countryCode, this.rawCustomFields);
+    this.db.setSchemaMap(schemaMap);
+    return countryCode;
+  }
+
+  async _connectWithConfig(config: DatabaseConfig, countryCode?: string) {
+    countryCode = countryCode || 'in'; // Default country code for MariaDB
+    this.db = new DatabaseCore(config);
     await this.db.connect();
     await this.setRawCustomFields();
     const schemaMap = getSchemas(countryCode, this.rawCustomFields);

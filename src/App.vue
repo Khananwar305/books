@@ -2,6 +2,7 @@
   <div
     id="app"
     class="
+      bg-gray-50
       dark:bg-gray-900
       h-screen
       flex flex-col

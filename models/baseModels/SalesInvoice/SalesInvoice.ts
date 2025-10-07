@@ -16,9 +16,19 @@ import { Party } from '../Party/Party';
 import { ValidationError } from 'fyo/utils/errors';
 import { Money } from 'pesa';
 import { Doc } from 'fyo/model/doc';
+import { EInvoiceService } from './eInvoiceService';
+import { showDialog } from 'src/utils/interactive';
 
 export class SalesInvoice extends Invoice {
   items?: SalesInvoiceItem[];
+  eInvoiceGenerated?: boolean;
+  irn?: string;
+  ackNo?: string;
+  ackDate?: Date;
+  signedQrCode?: string;
+  eInvoiceCancelled?: boolean;
+  cancelDate?: Date;
+  cancelRemark?: string;
 
   async getPosting() {
     const exchangeRate = this.exchangeRate ?? 1;
@@ -165,6 +175,122 @@ export class SalesInvoice extends Invoice {
   }
 
   static getActions(fyo: Fyo): Action[] {
-    return getInvoiceActions(fyo, ModelNameEnum.SalesInvoice);
+    const invoiceActions = getInvoiceActions(fyo, ModelNameEnum.SalesInvoice);
+
+    // Add e-Invoice actions
+    const eInvoiceActions: Action[] = [
+      {
+        label: t`Generate E-Invoice`,
+        group: 'E-Invoice',
+        condition: (doc: Doc) => {
+          const invoice = doc as SalesInvoice;
+          return (
+            invoice.submitted &&
+            !invoice.cancelled &&
+            !invoice.eInvoiceGenerated &&
+            !invoice.isReturn
+          );
+        },
+        action: async (doc: Doc) => {
+          const invoice = doc as SalesInvoice;
+          const eInvoiceService = new EInvoiceService(fyo);
+
+          const result = await eInvoiceService.generateEInvoice(invoice);
+
+          if (!result.success) {
+            await showDialog({
+              title: fyo.t`E-Invoice Generation Failed`,
+              detail: result.errorDetails || result.error || fyo.t`Unknown error occurred`,
+              type: 'error',
+            });
+          }
+        },
+      },
+      {
+        label: t`Cancel E-Invoice`,
+        group: 'E-Invoice',
+        condition: (doc: Doc) => {
+          const invoice = doc as SalesInvoice;
+          return (
+            invoice.eInvoiceGenerated &&
+            !invoice.eInvoiceCancelled
+          );
+        },
+        action: async (doc: Doc) => {
+          const invoice = doc as SalesInvoice;
+
+          // Show cancellation dialog to get reason and remark
+          const cancelReasons = [
+            { value: '1', label: 'Duplicate' },
+            { value: '2', label: 'Data Entry Mistake' },
+            { value: '3', label: 'Order Cancelled' },
+            { value: '4', label: 'Other' },
+          ];
+
+          // This is a simplified version - in production, you'd use a proper form dialog
+          const reason = '2'; // Data Entry Mistake
+          const remark = 'Cancelled due to error';
+
+          const eInvoiceService = new EInvoiceService(fyo);
+          const result = await eInvoiceService.cancelEInvoice(
+            invoice,
+            reason,
+            remark
+          );
+
+          if (!result.success) {
+            await showDialog({
+              title: fyo.t`E-Invoice Cancellation Failed`,
+              detail: result.errorDetails || result.error || fyo.t`Unknown error occurred`,
+              type: 'error',
+            });
+          }
+        },
+      },
+      {
+        label: t`View E-Invoice Details`,
+        group: 'E-Invoice',
+        condition: (doc: Doc) => {
+          const invoice = doc as SalesInvoice;
+          return invoice.eInvoiceGenerated === true;
+        },
+        action: async (doc: Doc) => {
+          const invoice = doc as SalesInvoice;
+
+          let details = `IRN: ${invoice.irn}\n`;
+          details += `Acknowledgement No: ${invoice.ackNo}\n`;
+          details += `Acknowledgement Date: ${invoice.ackDate}\n`;
+
+          if (invoice.eInvoiceCancelled) {
+            details += `\nStatus: CANCELLED\n`;
+            details += `Cancelled Date: ${invoice.cancelDate}\n`;
+            details += `Cancellation Remark: ${invoice.cancelRemark}`;
+          } else {
+            details += `\nStatus: ACTIVE`;
+          }
+
+          await showDialog({
+            title: fyo.t`E-Invoice Details`,
+            detail: details,
+            type: 'info',
+          });
+        },
+      },
+      {
+        label: t`Download E-Invoice PDF`,
+        group: 'E-Invoice',
+        condition: (doc: Doc) => {
+          const invoice = doc as SalesInvoice;
+          return invoice.eInvoiceGenerated === true;
+        },
+        action: async (doc: Doc) => {
+          const invoice = doc as SalesInvoice;
+          const eInvoiceService = new EInvoiceService(fyo);
+          await eInvoiceService.downloadEInvoicePDF(invoice);
+        },
+      },
+    ];
+
+    return [...invoiceActions, ...eInvoiceActions];
   }
 }

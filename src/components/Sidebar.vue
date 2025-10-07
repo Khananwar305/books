@@ -6,12 +6,18 @@
       flex
       justify-between
       flex-col
-      bg-gray-25
-      dark:bg-gray-900
       relative
+      transition-all
+      duration-300
     "
     :class="{
       'window-drag': platform !== 'Windows',
+    }"
+    :style="{
+      background: 'linear-gradient(180deg, #e3f2fd 0%, #bbdefb 100%)',
+      boxShadow: '2px 0 8px rgba(0, 0, 0, 0.1)',
+      width: isExpanded ? '240px' : '70px',
+      minWidth: isExpanded ? '240px' : '70px',
     }"
   >
     <div>
@@ -23,38 +29,51 @@
         "
       >
         <h6
+          v-if="isExpanded"
           data-testid="company-name"
           class="
             font-semibold
-            dark:text-gray-200
             whitespace-nowrap
             overflow-auto
             no-scrollbar
             select-none
+            transition-opacity
+            duration-300
           "
+          style="color: #1565c0; font-size: 1.2rem; letter-spacing: 0.5px;"
         >
           {{ companyName }}
         </h6>
+        <div
+          v-else
+          class="flex justify-center items-center w-full"
+          style="color: #1565c0; font-size: 1.5rem; font-weight: bold;"
+        >
+          {{ companyName.charAt(0).toUpperCase() }}
+        </div>
       </div>
 
       <!-- Sidebar Items -->
       <div v-for="group in groups" :key="group.label">
         <div
           class="
-            px-4
             flex
             items-center
             cursor-pointer
-            hover:bg-gray-100
-            dark:hover:bg-gray-875
-            h-10
+            h-12
+            transition-all
+            duration-300
           "
-          :class="
+          :class="isExpanded ? 'px-4' : 'justify-center'"
+          :style="
             isGroupActive(group) && !group.items
-              ? 'bg-gray-100 dark:bg-gray-875 border-s-4 border-gray-800 dark:border-gray-100'
-              : ''
+              ? 'background: #ffffff; border-radius: 8px; margin: 4px 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); border-left: 3px solid #1976d2;'
+              : 'margin: 4px 8px; border-radius: 8px;'
           "
+          @mouseover="(e) => !isGroupActive(group) && (e.currentTarget.style.background = 'rgba(255, 255, 255, 0.6)')"
+          @mouseout="(e) => !isGroupActive(group) && (e.currentTarget.style.background = '')"
           @click="routeToSidebarItem(group)"
+          :title="!isExpanded ? group.label : ''"
         >
           <Icon
             class="flex-shrink-0"
@@ -66,11 +85,12 @@
             :class="isGroupActive(group) && !group.items ? '-ms-1' : ''"
           />
           <div
-            class="ms-2 text-lg text-gray-700"
-            :class="
+            v-if="isExpanded"
+            class="ms-2 text-base transition-opacity duration-300"
+            :style="
               isGroupActive(group) && !group.items
-                ? 'text-gray-900 dark:text-gray-25'
-                : 'dark:text-gray-300'
+                ? 'color: #1565c0; font-weight: 600;'
+                : 'color: #546e7a; font-weight: 500;'
             "
           >
             {{ group.label }}
@@ -78,25 +98,27 @@
         </div>
 
         <!-- Expanded Group -->
-        <div v-if="group.items && isGroupActive(group)">
+        <div v-if="group.items && isGroupActive(group) && isExpanded">
           <div
             v-for="item in group.items"
             :key="item.label"
             class="
-              text-base
+              text-sm
               h-10
               ps-10
               cursor-pointer
               flex
               items-center
-              hover:bg-gray-100
-              dark:hover:bg-gray-875
+              transition-all
+              duration-300
             "
-            :class="
+            :style="
               isItemActive(item)
-                ? 'bg-gray-100 dark:bg-gray-875 text-gray-900 dark:text-gray-100 border-s-4 border-gray-800 dark:border-gray-100'
-                : 'text-gray-700 dark:text-gray-400'
+                ? 'background: #ffffff; color: #1565c0; border-radius: 8px; margin: 2px 8px; font-weight: 600; border-left: 3px solid #42a5f5;'
+                : 'color: #546e7a; margin: 2px 8px; border-radius: 8px; font-weight: 500;'
             "
+            @mouseover="(e) => !isItemActive(item) && (e.currentTarget.style.background = 'rgba(255, 255, 255, 0.6)')"
+            @mouseout="(e) => !isItemActive(item) && (e.currentTarget.style.background = '')"
             @click="routeToSidebarItem(item)"
           >
             <p :style="isItemActive(item) ? 'margin-left: -4px' : ''">
@@ -108,21 +130,28 @@
     </div>
 
     <!-- Report Issue and DB Switcher -->
-    <div class="window-no-drag flex flex-col gap-2 py-2 px-4">
+    <div class="window-no-drag flex flex-col gap-2 py-2" :class="isExpanded ? 'px-4' : 'px-2'">
       <button
         class="
           flex
-          text-sm text-gray-600
-          dark:text-gray-500
-          hover:text-gray-800
-          dark:hover:text-gray-400
-          gap-1
+          text-sm
+          gap-2
           items-center
+          px-2
+          py-1
+          rounded-lg
+          transition-all
+          duration-300
         "
+        :class="isExpanded ? '' : 'justify-center'"
+        :title="!isExpanded ? t`Help` : ''"
+        style="color: #546e7a;"
+        @mouseover="(e) => { e.currentTarget.style.background = 'rgba(255, 255, 255, 0.6)'; e.currentTarget.style.color = '#1565c0'; }"
+        @mouseout="(e) => { e.currentTarget.style.background = ''; e.currentTarget.style.color = '#546e7a'; }"
         @click="openDocumentation"
       >
         <feather-icon name="help-circle" class="h-4 w-4 flex-shrink-0" />
-        <p>
+        <p v-if="isExpanded">
           {{ t`Help` }}
         </p>
       </button>
@@ -130,50 +159,71 @@
       <button
         class="
           flex
-          text-sm text-gray-600
-          dark:text-gray-500
-          hover:text-gray-800
-          dark:hover:text-gray-400
-          gap-1
+          text-sm
+          gap-2
           items-center
+          px-2
+          py-1
+          rounded-lg
+          transition-all
+          duration-300
         "
+        :class="isExpanded ? '' : 'justify-center'"
+        :title="!isExpanded ? t`Shortcuts` : ''"
+        style="color: #546e7a;"
+        @mouseover="(e) => { e.currentTarget.style.background = 'rgba(255, 255, 255, 0.6)'; e.currentTarget.style.color = '#1565c0'; }"
+        @mouseout="(e) => { e.currentTarget.style.background = ''; e.currentTarget.style.color = '#546e7a'; }"
         @click="viewShortcuts = true"
       >
         <feather-icon name="command" class="h-4 w-4 flex-shrink-0" />
-        <p>{{ t`Shortcuts` }}</p>
+        <p v-if="isExpanded">{{ t`Shortcuts` }}</p>
       </button>
 
       <button
         data-testid="change-db"
         class="
           flex
-          text-sm text-gray-600
-          dark:text-gray-500
-          hover:text-gray-800
-          dark:hover:text-gray-400
-          gap-1
+          text-sm
+          gap-2
           items-center
+          px-2
+          py-1
+          rounded-lg
+          transition-all
+          duration-300
         "
+        :class="isExpanded ? '' : 'justify-center'"
+        :title="!isExpanded ? t`Change DB` : ''"
+        style="color: #546e7a;"
+        @mouseover="(e) => { e.currentTarget.style.background = 'rgba(255, 255, 255, 0.6)'; e.currentTarget.style.color = '#1565c0'; }"
+        @mouseout="(e) => { e.currentTarget.style.background = ''; e.currentTarget.style.color = '#546e7a'; }"
         @click="$emit('change-db-file')"
       >
         <feather-icon name="database" class="h-4 w-4 flex-shrink-0" />
-        <p>{{ t`Change DB` }}</p>
+        <p v-if="isExpanded">{{ t`Change DB` }}</p>
       </button>
 
       <button
         class="
           flex
-          text-sm text-gray-600
-          dark:text-gray-500
-          hover:text-gray-800
-          dark:hover:text-gray-400
-          gap-1
+          text-sm
+          gap-2
           items-center
+          px-2
+          py-1
+          rounded-lg
+          transition-all
+          duration-300
         "
+        :class="isExpanded ? '' : 'justify-center'"
+        :title="!isExpanded ? t`Report Issue` : ''"
+        style="color: #546e7a;"
+        @mouseover="(e) => { e.currentTarget.style.background = 'rgba(255, 255, 255, 0.6)'; e.currentTarget.style.color = '#1565c0'; }"
+        @mouseout="(e) => { e.currentTarget.style.background = ''; e.currentTarget.style.color = '#546e7a'; }"
         @click="() => reportIssue()"
       >
         <feather-icon name="flag" class="h-4 w-4 flex-shrink-0" />
-        <p>
+        <p v-if="isExpanded">
           {{ t`Report Issue` }}
         </p>
       </button>
@@ -188,24 +238,25 @@
       </p>
     </div>
 
-    <!-- Hide Sidebar Button -->
+    <!-- Expand/Collapse Toggle Button -->
     <button
       class="
         absolute
-        bottom-0
+        top-4
         end-0
-        text-gray-600
-        dark:text-gray-500
-        hover:bg-gray-100
-        dark:hover:bg-gray-875
-        rounded
-        p-1
-        m-4
-        rtl-rotate-180
+        rounded-lg
+        p-2
+        m-2
+        transition-all
+        duration-300
       "
-      @click="() => toggleSidebar()"
+      style="color: #546e7a; background: rgba(255, 255, 255, 0.5);"
+      @mouseover="(e) => { e.currentTarget.style.background = '#ffffff'; e.currentTarget.style.color = '#1565c0'; e.currentTarget.style.boxShadow = '0 2px 4px rgba(0, 0, 0, 0.1)'; }"
+      @mouseout="(e) => { e.currentTarget.style.background = 'rgba(255, 255, 255, 0.5)'; e.currentTarget.style.color = '#546e7a'; e.currentTarget.style.boxShadow = ''; }"
+      @click="toggleExpand"
+      :title="isExpanded ? 'Collapse Sidebar' : 'Expand Sidebar'"
     >
-      <feather-icon name="chevrons-left" class="w-4 h-4" />
+      <feather-icon :name="isExpanded ? 'chevrons-left' : 'chevrons-right'" class="w-4 h-4" />
     </button>
 
     <Modal :open-modal="viewShortcuts" @closemodal="viewShortcuts = false">
@@ -252,12 +303,14 @@ export default defineComponent({
       viewShortcuts: false,
       activeGroup: null,
       showDevMode: false,
+      isExpanded: true,
     } as {
       companyName: string;
       groups: SidebarConfig;
       viewShortcuts: boolean;
       activeGroup: null | SidebarRoot;
       showDevMode: boolean;
+      isExpanded: boolean;
     };
   },
   computed: {
@@ -269,6 +322,12 @@ export default defineComponent({
     const { companyName } = await fyo.doc.getDoc('AccountingSettings');
     this.companyName = companyName as string;
     this.groups = await getSidebarConfig();
+
+    // Restore sidebar state from localStorage
+    const savedState = localStorage.getItem('sidebarExpanded');
+    if (savedState !== null) {
+      this.isExpanded = savedState === 'true';
+    }
 
     this.setActiveGroup();
     router.afterEach(() => {
@@ -291,6 +350,11 @@ export default defineComponent({
     routeTo,
     reportIssue,
     toggleSidebar,
+    toggleExpand() {
+      this.isExpanded = !this.isExpanded;
+      // Store preference in localStorage
+      localStorage.setItem('sidebarExpanded', this.isExpanded.toString());
+    },
     openDocumentation() {
       ipc.openLink('https://docs.vitibook.io/' + docsPathRef.value);
     },

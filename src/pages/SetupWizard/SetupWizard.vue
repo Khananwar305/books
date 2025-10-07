@@ -1,7 +1,7 @@
 <template>
   <FormContainer
     :show-header="false"
-    class="justify-content items-center h-full"
+    class="justify-content items-center h-full overflow-hidden"
     :class="{ 'window-drag': platform !== 'Windows' }"
   >
     <template #body>
@@ -14,6 +14,8 @@
           dark:bg-gray-890
           border-b
           dark:border-gray-800
+          z-10
+          flex-shrink-0
         "
       >
       </FormHeader>
@@ -21,7 +23,8 @@
       <!-- Section Container -->
       <div
         v-if="hasDoc"
-        class="overflow-auto custom-scroll custom-scroll-thumb1"
+        class="overflow-y-auto overflow-x-hidden custom-scroll custom-scroll-thumb1 flex-1"
+        style="max-height: calc(100vh - 200px);"
       >
         <CommonFormSection
           v-for="([name, fields], idx) in activeGroup.entries()"
@@ -58,6 +61,7 @@
           bottom-0
           bg-white
           dark:bg-gray-890
+          z-10
         "
       >
         <p v-if="loading" class="text-base text-gray-600 dark:text-gray-400">
@@ -146,6 +150,11 @@ export default defineComponent({
         return false;
       }
 
+      // Company Name is mandatory even though not marked as required
+      if (!this.doc.companyName) {
+        return false;
+      }
+
       const values = this.doc.schema.fields
         .filter((f) => f.required)
         .map((f) => this.doc[f.fieldname]);
@@ -162,7 +171,31 @@ export default defineComponent({
         this.doc
       );
 
-      return [...groupedFields.values()][0];
+      const firstGroup = [...groupedFields.values()][0];
+
+      // Dynamically update district field label based on country
+      const country = this.doc.get('country') as string | undefined;
+      if (country) {
+        const divisionLabel = this.getDistrictLabel(country);
+        const hasDistricts = this.hasDistrictsForCountry(country);
+
+        // Update the district field label
+        for (const [sectionName, fields] of firstGroup.entries()) {
+          const modifiedFields = fields.map((field) => {
+            if (field.fieldname === 'district') {
+              return {
+                ...field,
+                label: hasDistricts ? divisionLabel : 'State/Province',
+                placeholder: hasDistricts ? `Select ${divisionLabel}` : 'Not Applicable',
+              };
+            }
+            return field;
+          });
+          firstGroup.set(sectionName, modifiedFields);
+        }
+      }
+
+      return firstGroup;
     },
   },
   async mounted() {
@@ -179,6 +212,70 @@ export default defineComponent({
     this.fyo.telemetry.log(Verb.Started, ModelNameEnum.SetupWizard);
   },
   methods: {
+    hasDistrictsForCountry(country: string): boolean {
+      const countriesWithDistricts = [
+        'India',
+        'United States',
+        'Canada',
+        'United Kingdom',
+        'Australia',
+        'United Arab Emirates',
+        'France',
+        'Germany',
+        'Indonesia',
+        'Mexico',
+      ];
+      return countriesWithDistricts.includes(country);
+    },
+    getDistrictLabel(country: string): string {
+      const labelMap: Record<string, string> = {
+        'United States': 'State',
+        'India': 'State',
+        'Canada': 'Province',
+        'United Arab Emirates': 'Emirate',
+        'France': 'Region',
+        'Germany': 'State',
+        'Indonesia': 'Province',
+        'Mexico': 'State',
+        'United Kingdom': 'Country',
+        'Australia': 'State/Territory',
+        'China': 'Province',
+        'Japan': 'Prefecture',
+        'Brazil': 'State',
+        'Russia': 'Federal Subject',
+        'Italy': 'Region',
+        'Spain': 'Autonomous Community',
+        'Argentina': 'Province',
+        'Saudi Arabia': 'Region',
+        'Egypt': 'Governorate',
+        'Nigeria': 'State',
+        'South Africa': 'Province',
+        'Pakistan': 'Province',
+        'Bangladesh': 'Division',
+        'Philippines': 'Region',
+        'Thailand': 'Province',
+        'Vietnam': 'Province',
+        'Malaysia': 'State',
+        'Singapore': 'Region',
+        'Netherlands': 'Province',
+        'Belgium': 'Region',
+        'Switzerland': 'Canton',
+        'Austria': 'State',
+        'Sweden': 'County',
+        'Norway': 'County',
+        'Denmark': 'Region',
+        'Finland': 'Region',
+        'Poland': 'Voivodeship',
+        'Turkey': 'Province',
+        'Greece': 'Region',
+        'Portugal': 'Region',
+        'Ireland': 'County',
+        'New Zealand': 'Region',
+        'South Korea': 'Province',
+      };
+
+      return labelMap[country] || 'State/Province';
+    },
     async fill() {
       if (!this.hasDoc) {
         return;
@@ -186,7 +283,11 @@ export default defineComponent({
 
       await this.doc.set('companyName', "Lin's Things");
       await this.doc.set('email', 'lin@lthings.com');
-      await this.doc.set('fullname', 'Lin Slovenly');
+      await this.doc.set('mailingName', 'Lin Slovenly');
+      await this.doc.set('address', '123 Main Street');
+      await this.doc.set('district', 'Central District');
+      await this.doc.set('pincode', '110001');
+      await this.doc.set('phone', '+91-11-12345678');
       await this.doc.set('bankName', 'Max Finance');
       await this.doc.set('country', 'India');
     },
@@ -200,6 +301,14 @@ export default defineComponent({
 
       try {
         await this.doc.set(fieldname, value);
+
+        // Auto-fill mailingName with companyName if mailingName is empty
+        if (fieldname === 'companyName' && value) {
+          const mailingName = this.doc.get('mailingName');
+          if (!mailingName) {
+            await this.doc.set('mailingName', value);
+          }
+        }
       } catch (err) {
         if (!(err instanceof Error)) {
           return;
@@ -213,10 +322,18 @@ export default defineComponent({
         return;
       }
 
+      if (!this.doc.companyName) {
+        return await showDialog({
+          title: this.t`Company Name Required`,
+          detail: this.t`Please enter the Company Name to continue.`,
+          type: 'error',
+        });
+      }
+
       if (!this.areAllValuesFilled) {
         return await showDialog({
           title: this.t`Mandatory Error`,
-          detail: this.t`Please fill all values.`,
+          detail: this.t`Please fill all required values.`,
           type: 'error',
         });
       }

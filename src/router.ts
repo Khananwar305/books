@@ -8,6 +8,8 @@ import PrintView from 'src/pages/PrintView/PrintView.vue';
 import ReportPrintView from 'src/pages/PrintView/ReportPrintView.vue';
 import QuickEditForm from 'src/pages/QuickEditForm.vue';
 import Report from 'src/pages/Report.vue';
+import ReportsHub from 'src/pages/ReportsHub.vue';
+import SetupHub from 'src/pages/SetupHub.vue';
 import Settings from 'src/pages/Settings/Settings.vue';
 import TemplateBuilder from 'src/pages/TemplateBuilder/TemplateBuilder.vue';
 import CustomizeForm from 'src/pages/CustomizeForm/CustomizeForm.vue';
@@ -78,6 +80,16 @@ const routes: RouteRecordRaw[] = [
     name: 'ReportPrintView',
     component: ReportPrintView,
     props: true,
+  },
+  {
+    path: '/reports',
+    name: 'ReportsHub',
+    component: ReportsHub,
+  },
+  {
+    path: '/setup',
+    name: 'SetupHub',
+    component: SetupHub,
   },
   {
     path: '/report/:reportClassName',

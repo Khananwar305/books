@@ -14,7 +14,7 @@ import {
   getValueMapFromList,
 } from '../../utils';
 import { DatabaseBase, GetAllOptions, QueryFilter } from '../../utils/db/types';
-import { getDefaultMetaFieldValueMap, sqliteTypeMap, SYSTEM } from '../helpers';
+import { getDefaultMetaFieldValueMap, sqliteTypeMap, mariadbTypeMap, SYSTEM } from '../helpers';
 import {
   AlterConfig,
   ColumnDiff,
@@ -45,24 +45,74 @@ import {
  * the `fieldValueMap`.
  */
 
+export type DatabaseType = 'sqlite' | 'mariadb';
+
+export interface DatabaseConfig {
+  type: DatabaseType;
+  host?: string;
+  port?: number;
+  user?: string;
+  password?: string;
+  database?: string;
+  filename?: string;
+}
+
 export default class DatabaseCore extends DatabaseBase {
   knex?: Knex;
   typeMap = sqliteTypeMap;
   dbPath: string;
   schemaMap: SchemaMap = {};
   connectionParams: Knex.Config;
+  dbType: DatabaseType;
 
-  constructor(dbPath?: string) {
+  constructor(config?: string | DatabaseConfig) {
     super();
-    this.dbPath = dbPath ?? ':memory:';
-    this.connectionParams = {
-      client: 'better-sqlite3',
-      connection: {
-        filename: this.dbPath,
-      },
-      useNullAsDefault: true,
-      asyncStackTraces: process.env.NODE_ENV === 'development',
-    };
+
+    if (typeof config === 'string' || config === undefined) {
+      // SQLite configuration (backward compatibility)
+      this.dbType = 'sqlite';
+      this.dbPath = config ?? ':memory:';
+      this.typeMap = sqliteTypeMap;
+      this.connectionParams = {
+        client: 'better-sqlite3',
+        connection: {
+          filename: this.dbPath,
+        },
+        useNullAsDefault: true,
+        asyncStackTraces: process.env.NODE_ENV === 'development',
+      };
+    } else {
+      // MariaDB configuration
+      this.dbType = config.type;
+      this.dbPath = config.filename || config.database || '';
+
+      if (config.type === 'mariadb') {
+        this.typeMap = mariadbTypeMap;
+        this.connectionParams = {
+          client: 'mysql2',
+          connection: {
+            host: config.host || 'localhost',
+            port: config.port || 3306,
+            user: config.user || 'root',
+            password: config.password || '',
+            database: config.database || 'vitibooks',
+          },
+          useNullAsDefault: true,
+          asyncStackTraces: process.env.NODE_ENV === 'development',
+        };
+      } else {
+        // SQLite
+        this.typeMap = sqliteTypeMap;
+        this.connectionParams = {
+          client: 'better-sqlite3',
+          connection: {
+            filename: config.filename || ':memory:',
+          },
+          useNullAsDefault: true,
+          asyncStackTraces: process.env.NODE_ENV === 'development',
+        };
+      }
+    }
   }
 
   static async getCountryCode(dbPath: string): Promise<string> {
@@ -94,7 +144,13 @@ export default class DatabaseCore extends DatabaseBase {
 
   async connect() {
     this.knex = knex(this.connectionParams);
-    await this.knex.raw('PRAGMA foreign_keys=ON');
+
+    if (this.dbType === 'sqlite') {
+      await this.knex.raw('PRAGMA foreign_keys=ON');
+    } else if (this.dbType === 'mariadb') {
+      // Set SQL mode for MariaDB to be strict
+      await this.knex.raw("SET SESSION sql_mode = 'STRICT_TRANS_TABLES,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION'");
+    }
   }
 
   async close() {
@@ -402,12 +458,18 @@ export default class DatabaseCore extends DatabaseBase {
   }
 
   async prestigeTheTable(schemaName: string, tableRows: FieldValueMap[]) {
-    // Alter table hacx for sqlite in case of schema change.
+    // Alter table hack for sqlite in case of schema change.
     const tempName = `__${schemaName}`;
 
     // Create replacement table
     await this.knex!.schema.dropTableIfExists(tempName);
-    await this.knex!.raw('PRAGMA foreign_keys=OFF');
+
+    if (this.dbType === 'sqlite') {
+      await this.knex!.raw('PRAGMA foreign_keys=OFF');
+    } else {
+      await this.knex!.raw('SET foreign_key_checks = 0');
+    }
+
     await this.#createTable(schemaName, tempName);
 
     // Insert rows from source table into the replacement table
@@ -416,23 +478,45 @@ export default class DatabaseCore extends DatabaseBase {
     // Replace with the replacement table
     await this.knex!.schema.dropTable(schemaName);
     await this.knex!.schema.renameTable(tempName, schemaName);
-    await this.knex!.raw('PRAGMA foreign_keys=ON');
+
+    if (this.dbType === 'sqlite') {
+      await this.knex!.raw('PRAGMA foreign_keys=ON');
+    } else {
+      await this.knex!.raw('SET foreign_key_checks = 1');
+    }
   }
 
   async #getTableColumns(schemaName: string): Promise<string[]> {
-    const info: FieldValueMap[] = await this.knex!.raw(
-      `PRAGMA table_info(${schemaName})`
-    );
-    return info.map((d) => d.name as string);
+    let info: FieldValueMap[];
+
+    if (this.dbType === 'sqlite') {
+      info = await this.knex!.raw(`PRAGMA table_info(${schemaName})`);
+      return info.map((d) => d.name as string);
+    } else {
+      // MariaDB/MySQL
+      const result = await this.knex!.raw(
+        `SELECT COLUMN_NAME as name FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = ? AND TABLE_SCHEMA = DATABASE()`,
+        [schemaName]
+      );
+      return result[0].map((d: any) => d.name as string);
+    }
   }
 
   async truncate(tableNames?: string[]) {
     if (tableNames === undefined) {
-      const q = (await this.knex!.raw(`
-        select name from sqlite_schema
-        where type='table'
-        and name not like 'sqlite_%'`)) as { name: string }[];
-      tableNames = q.map((i) => i.name);
+      if (this.dbType === 'sqlite') {
+        const q = (await this.knex!.raw(`
+          select name from sqlite_schema
+          where type='table'
+          and name not like 'sqlite_%'`)) as { name: string }[];
+        tableNames = q.map((i) => i.name);
+      } else {
+        // MariaDB/MySQL
+        const result = await this.knex!.raw(
+          `SELECT TABLE_NAME as name FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_TYPE = 'BASE TABLE'`
+        );
+        tableNames = result[0].map((i: any) => i.name);
+      }
     }
 
     for (const name of tableNames) {
@@ -441,10 +525,22 @@ export default class DatabaseCore extends DatabaseBase {
   }
 
   async #getForeignKeys(schemaName: string): Promise<string[]> {
-    const foreignKeyList: FieldValueMap[] = await this.knex!.raw(
-      `PRAGMA foreign_key_list(${schemaName})`
-    );
-    return foreignKeyList.map((d) => d.from as string);
+    if (this.dbType === 'sqlite') {
+      const foreignKeyList: FieldValueMap[] = await this.knex!.raw(
+        `PRAGMA foreign_key_list(${schemaName})`
+      );
+      return foreignKeyList.map((d) => d.from as string);
+    } else {
+      // MariaDB/MySQL
+      const result = await this.knex!.raw(`
+        SELECT COLUMN_NAME as \`from\`
+        FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE
+        WHERE TABLE_NAME = ?
+        AND TABLE_SCHEMA = DATABASE()
+        AND REFERENCED_TABLE_NAME IS NOT NULL
+      `, [schemaName]);
+      return result[0].map((d: any) => d.from as string);
+    }
   }
 
   #getQueryBuilder(

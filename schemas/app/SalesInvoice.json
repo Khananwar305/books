@@ -118,6 +118,64 @@
       "edit": false,
       "readOnly": true,
       "section": "References"
+    },
+    {
+      "fieldname": "eInvoiceGenerated",
+      "fieldtype": "Check",
+      "label": "E-Invoice Generated",
+      "default": false,
+      "readOnly": true,
+      "section": "E-Invoice"
+    },
+    {
+      "fieldname": "irn",
+      "fieldtype": "Data",
+      "label": "IRN (Invoice Reference Number)",
+      "readOnly": true,
+      "section": "E-Invoice"
+    },
+    {
+      "fieldname": "ackNo",
+      "fieldtype": "Data",
+      "label": "Acknowledgement Number",
+      "readOnly": true,
+      "section": "E-Invoice"
+    },
+    {
+      "fieldname": "ackDate",
+      "fieldtype": "Datetime",
+      "label": "Acknowledgement Date",
+      "readOnly": true,
+      "section": "E-Invoice"
+    },
+    {
+      "fieldname": "signedQrCode",
+      "fieldtype": "Text",
+      "label": "Signed QR Code",
+      "readOnly": true,
+      "section": "E-Invoice"
+    },
+    {
+      "fieldname": "eInvoiceCancelled",
+      "fieldtype": "Check",
+      "label": "E-Invoice Cancelled",
+      "default": false,
+      "readOnly": true,
+      "section": "E-Invoice"
+    },
+    {
+      "fieldname": "cancelDate",
+      "fieldtype": "Datetime",
+      "label": "Cancellation Date",
+      "readOnly": true,
+      "section": "E-Invoice"
+    },
+    {
+      "fieldname": "cancelRemark",
+      "fieldtype": "Text",
+      "label": "Cancellation Remark",
+      "readOnly": true,
+      "section": "E-Invoice"
     }
   ],
   "keywordFields": ["name", "party"]
