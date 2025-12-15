@@ -104,6 +104,69 @@
           <feather-icon name="arrow-right" class="arrow-icon" />
         </div>
       </div>
+
+      <!-- Sales Card -->
+      <div class="setup-card" @click="navigateTo('/sales-setup')">
+        <div class="card-icon-wrapper" style="background: linear-gradient(135deg, #ff9a56 0%, #ff6a88 100%);">
+          <feather-icon name="shopping-cart" class="card-icon" />
+        </div>
+        <div class="card-content">
+          <h3 class="card-title">{{ t`Sales` }}</h3>
+          <p class="card-description">{{ t`Configure sales items and customers` }}</p>
+        </div>
+        <div class="card-footer">
+          <feather-icon name="arrow-right" class="arrow-icon" />
+        </div>
+      </div>
+
+      <!-- Purchase Card -->
+      <div class="setup-card" @click="navigateTo('/purchase-setup')">
+        <div class="card-icon-wrapper" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+          <feather-icon name="shopping-bag" class="card-icon" />
+        </div>
+        <div class="card-content">
+          <h3 class="card-title">{{ t`Purchase` }}</h3>
+          <p class="card-description">{{ t`Configure purchase items and suppliers` }}</p>
+        </div>
+        <div class="card-footer">
+          <feather-icon name="arrow-right" class="arrow-icon" />
+        </div>
+      </div>
+
+      <!-- Modules Configuration Card -->
+      <div class="setup-card" @click="navigateTo('/configure-sales-modules')">
+        <div class="card-icon-wrapper" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+          <feather-icon name="grid" class="card-icon" />
+        </div>
+        <div class="card-content">
+          <h3 class="card-title">{{ t`Modules Configuration` }}</h3>
+          <p class="card-description">{{ t`Configure modules and numbering series` }}</p>
+        </div>
+        <div class="card-footer">
+          <feather-icon name="arrow-right" class="arrow-icon" />
+        </div>
+      </div>
+
+      <!-- User and Roles Card -->
+      <div class="setup-card user-roles-card">
+        <div class="card-icon-wrapper" style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);">
+          <feather-icon name="user-check" class="card-icon" />
+        </div>
+        <div class="card-content">
+          <h3 class="card-title">{{ t`User and Roles` }}</h3>
+          <p class="card-description">{{ t`Manage users and permissions` }}</p>
+        </div>
+        <div class="user-roles-buttons">
+          <button class="user-role-btn user-btn" @click="navigateTo('/list/User')">
+            <feather-icon name="users" class="btn-icon" />
+            {{ t`Users` }}
+          </button>
+          <button class="user-role-btn role-btn" @click="navigateTo('/list/Role')">
+            <feather-icon name="shield" class="btn-icon" />
+            {{ t`Roles` }}
+          </button>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -283,6 +346,57 @@ export default defineComponent({
 .setup-card:hover .arrow-icon {
   color: #6c757d;
   transform: translateX(4px);
+}
+
+/* User and Roles Card Buttons */
+.user-roles-card {
+  cursor: default;
+}
+
+.user-roles-buttons {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid #e9ecef;
+}
+
+.user-role-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  background: white;
+  color: #495057;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.user-role-btn .btn-icon {
+  width: 14px;
+  height: 14px;
+}
+
+.user-btn:hover {
+  background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+  color: white;
+  border-color: #11998e;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(17, 153, 142, 0.25);
+}
+
+.role-btn:hover {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  color: white;
+  border-color: #f093fb;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(240, 147, 251, 0.25);
 }
 
 /* Responsive */

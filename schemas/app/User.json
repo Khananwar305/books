@@ -1,0 +1,72 @@
+{
+  "name": "User",
+  "label": "User",
+  "naming": "manual",
+  "isSingle": false,
+  "isChild": false,
+  "keywordFields": ["name", "email"],
+  "fields": [
+    {
+      "fieldname": "name",
+      "label": "Full Name",
+      "fieldtype": "Data",
+      "required": true,
+      "placeholder": "Enter full name"
+    },
+    {
+      "fieldname": "email",
+      "label": "Email",
+      "fieldtype": "Data",
+      "required": true,
+      "placeholder": "user@example.com"
+    },
+    {
+      "fieldname": "role",
+      "label": "Role",
+      "fieldtype": "Link",
+      "target": "Role",
+      "required": true
+    },
+    {
+      "fieldname": "isActive",
+      "label": "Is Active",
+      "fieldtype": "Check",
+      "default": true
+    },
+    {
+      "fieldname": "phone",
+      "label": "Phone",
+      "fieldtype": "Data",
+      "placeholder": "Enter phone number"
+    },
+    {
+      "fieldname": "address",
+      "label": "Address",
+      "fieldtype": "Text",
+      "placeholder": "Enter address"
+    },
+    {
+      "fieldname": "department",
+      "label": "Department",
+      "fieldtype": "Data",
+      "placeholder": "e.g., Accounts, Sales"
+    },
+    {
+      "fieldname": "joiningDate",
+      "label": "Joining Date",
+      "fieldtype": "Date"
+    },
+    {
+      "fieldname": "notes",
+      "label": "Notes",
+      "fieldtype": "Text",
+      "placeholder": "Any additional notes about this user"
+    }
+  ],
+  "quickEditFields": [
+    "name",
+    "email",
+    "role",
+    "isActive"
+  ]
+}

@@ -52,6 +52,8 @@ export enum ModelNameEnum {
   SalesInvoiceItem = 'SalesInvoiceItem',
   SalesQuote = 'SalesQuote',
   SalesQuoteItem = 'SalesQuoteItem',
+  SalesOrder = 'SalesOrder',
+  SalesOrderItem = 'SalesOrderItem',
   SerialNumber = 'SerialNumber',
   SetupWizard = 'SetupWizard',
   Tax = 'Tax',

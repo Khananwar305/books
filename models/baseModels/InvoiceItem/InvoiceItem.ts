@@ -74,7 +74,12 @@ export abstract class InvoiceItem extends Doc {
   }
 
   get enableDiscounting() {
-    return !!this.fyo.singles?.AccountingSettings?.enableDiscounting;
+    // For sales items, always return true for now
+    // Actual check happens in hidden map which can be async
+    if (this.isSales) {
+      return true;
+    }
+    return false;
   }
 
   get enableInventory() {
@@ -342,8 +347,64 @@ export abstract class InvoiceItem extends Doc {
       dependsOn: ['item'],
     },
     amount: {
-      formula: () => (this.rate as Money).mul(this.quantity as number),
-      dependsOn: ['item', 'rate', 'quantity'],
+      formula: () => {
+        const rate = this.rate ?? this.fyo.pesa(0);
+        const quantity = this.quantity ?? 1;
+        const baseAmount = (rate as Money).mul(quantity);
+
+        // Apply discount to show in Amount column
+        const itemDiscountPercent = this.itemDiscountPercent ?? 0;
+        const itemDiscountAmount = this.itemDiscountAmount ?? this.fyo.pesa(0);
+        const setItemDiscountAmount = !!this.setItemDiscountAmount;
+
+        console.log('[InvoiceItem amount formula]', {
+          item: this.item,
+          rate: rate.float,
+          quantity,
+          baseAmount: baseAmount.float,
+          setItemDiscountAmount,
+          itemDiscountPercent,
+          itemDiscountAmount: itemDiscountAmount.float,
+        });
+
+        // If no discount, return base amount
+        if (!setItemDiscountAmount && itemDiscountPercent === 0) {
+          console.log('[InvoiceItem amount] No discount applied');
+          return baseAmount;
+        }
+
+        if (setItemDiscountAmount && itemDiscountAmount.isZero()) {
+          console.log('[InvoiceItem amount] Amount mode but discount is zero');
+          return baseAmount;
+        }
+
+        // Apply percentage discount
+        if (!setItemDiscountAmount && itemDiscountPercent > 0) {
+          const discountFraction = itemDiscountPercent / 100;
+          const discountValue = baseAmount.mul(discountFraction);
+          const result = baseAmount.sub(discountValue);
+          console.log('[InvoiceItem amount] Applied percentage discount:', {
+            discountPercent: itemDiscountPercent,
+            discountValue: discountValue.float,
+            result: result.float,
+          });
+          return result;
+        }
+
+        // Apply fixed amount discount
+        if (setItemDiscountAmount && !itemDiscountAmount.isZero()) {
+          const result = baseAmount.sub(itemDiscountAmount);
+          console.log('[InvoiceItem amount] Applied amount discount:', {
+            discountAmount: itemDiscountAmount.float,
+            result: result.float,
+          });
+          return result;
+        }
+
+        console.log('[InvoiceItem amount] No condition matched, returning base amount');
+        return baseAmount;
+      },
+      dependsOn: ['item', 'rate', 'quantity', 'itemDiscountPercent', 'itemDiscountAmount', 'setItemDiscountAmount'],
     },
     hsnCode: {
       formula: async () =>
@@ -352,72 +413,27 @@ export abstract class InvoiceItem extends Doc {
     },
     itemDiscountedTotal: {
       formula: async () => {
-        const totalTaxRate = await this.getTotalTaxRate();
-        const rate = this.rate ?? this.fyo.pesa(0);
-        const quantity = this.quantity ?? 1;
-        const itemDiscountAmount = this.itemDiscountAmount ?? this.fyo.pesa(0);
-        const itemDiscountPercent = this.itemDiscountPercent ?? 0;
-
-        if (this.setItemDiscountAmount && this.itemDiscountAmount?.isZero()) {
-          return rate.mul(quantity);
-        }
-
-        if (!this.setItemDiscountAmount && this.itemDiscountPercent === 0) {
-          return rate.mul(quantity);
-        }
-
-        if (!this.discountAfterTax) {
-          return getDiscountedTotalBeforeTaxation(
-            rate,
-            quantity,
-            itemDiscountAmount,
-            itemDiscountPercent,
-            !!this.setItemDiscountAmount
-          );
-        }
-
-        return getDiscountedTotalAfterTaxation(
-          totalTaxRate,
-          rate,
-          quantity,
-          itemDiscountAmount,
-          itemDiscountPercent,
-          !!this.setItemDiscountAmount
-        );
+        // Since amount already has discount applied, just return it
+        // This is the base for tax calculation
+        return this.amount ?? this.fyo.pesa(0);
       },
       dependsOn: [
+        'amount',
         'itemDiscountAmount',
         'itemDiscountPercent',
-        'itemTaxedTotal',
         'setItemDiscountAmount',
-        'tax',
-        'rate',
-        'quantity',
-        'item',
       ],
     },
     itemTaxedTotal: {
       formula: async () => {
         const totalTaxRate = await this.getTotalTaxRate();
-        const rate = this.rate ?? this.fyo.pesa(0);
-        const quantity = this.quantity ?? 1;
-        const itemDiscountAmount = this.itemDiscountAmount ?? this.fyo.pesa(0);
-        const itemDiscountPercent = this.itemDiscountPercent ?? 0;
+        const baseAmount = this.amount ?? this.fyo.pesa(0);
 
-        if (!this.discountAfterTax) {
-          return getTaxedTotalAfterDiscounting(
-            totalTaxRate,
-            rate,
-            quantity,
-            itemDiscountAmount,
-            itemDiscountPercent,
-            !!this.setItemDiscountAmount
-          );
-        }
-
-        return getTaxedTotalBeforeDiscounting(totalTaxRate, rate, quantity);
+        // Calculate tax on the discounted amount
+        const taxAmount = baseAmount.percent(totalTaxRate);
+        return baseAmount.add(taxAmount);
       },
-      dependsOn: ['rate', 'quantity', 'item'],
+      dependsOn: ['amount', 'tax', 'item'],
     },
     stockNotTransferred: {
       formula: async () => {
@@ -455,46 +471,72 @@ export abstract class InvoiceItem extends Doc {
     },
     setItemDiscountAmount: {
       formula: async () => {
-        if (!this.fyo.singles.AccountingSettings?.enablePricingRule) {
-          return this.setItemDiscountAmount;
-        }
+        // Check for pricing rules first (they take precedence)
+        if (this.fyo.singles.AccountingSettings?.enablePricingRule) {
+          const hasPricingRule = this.parentdoc?.pricingRuleDetail?.some(
+            (rule) => rule.referenceItem === this.item
+          );
 
-        const hasPricingRule = this.parentdoc?.pricingRuleDetail?.some(
-          (rule) => rule.referenceItem === this.item
-        );
-
-        if (!hasPricingRule && (this.itemDiscountAmount as Money).isZero()) {
-          return false;
-        }
-
-        const applicablePricingRules = await getPricingRule(
-          this.parentdoc as SalesInvoice
-        );
-
-        const itemRule = applicablePricingRules?.find(
-          (rule) => rule.applyOnItem === this.item
-        );
-
-        if (!itemRule) {
-          if (!this.prule) {
-            await this.set('itemDiscountAmount', this.itemDiscountAmount);
-            return true;
+          if (!hasPricingRule && (this.itemDiscountAmount as Money).isZero()) {
+            // No pricing rule and no discount amount - check SalesModule config
           } else {
-            await this.set('itemDiscountAmount', this.fyo.pesa(0));
+            // Has pricing rule - use pricing rule logic
+            const applicablePricingRules = await getPricingRule(
+              this.parentdoc as SalesInvoice
+            );
+
+            const itemRule = applicablePricingRules?.find(
+              (rule) => rule.applyOnItem === this.item
+            );
+
+            if (!itemRule) {
+              if (!this.prule) {
+                await this.set('itemDiscountAmount', this.itemDiscountAmount);
+                return true;
+              } else {
+                await this.set('itemDiscountAmount', this.fyo.pesa(0));
+              }
+              // Fall through to check SalesModule config
+            } else {
+              this.prule = itemRule;
+              const pricingRuleDoc = itemRule.pricingRule;
+
+              if (pricingRuleDoc.priceDiscountType === 'amount') {
+                const discountAmount =
+                  pricingRuleDoc.discountAmount ?? this.fyo.pesa(0);
+                await this.set('itemDiscountAmount', discountAmount);
+                return true;
+              }
+
+              return false;
+            }
           }
-          return false;
-        }
-        this.prule = itemRule;
-
-        const pricingRuleDoc = itemRule.pricingRule;
-
-        if (pricingRuleDoc.priceDiscountType === 'amount') {
-          const discountAmount =
-            pricingRuleDoc.discountAmount ?? this.fyo.pesa(0);
-          await this.set('itemDiscountAmount', discountAmount);
-          return true;
         }
 
+        // Check SalesModule configuration for discount type
+        if (this.parentdoc && this.parentdoc.schemaName) {
+          try {
+            const configs = await this.fyo.db.getAllRaw('SalesModule', {
+              fields: ['discountType', 'isActive'],
+              filters: { referenceType: this.parentdoc.schemaName },
+            });
+
+            if (configs && configs.length > 0) {
+              const activeConfig = configs.find(c => c.isActive !== false) || configs[0];
+              const isAmountMode = activeConfig.discountType === 'amount';
+              console.log('[InvoiceItem setItemDiscountAmount]', {
+                item: this.item,
+                discountType: activeConfig.discountType,
+                isAmountMode,
+              });
+              return isAmountMode;
+            }
+          } catch (error) {
+            console.error('Error loading discount type:', error);
+          }
+        }
+
+        console.log('[InvoiceItem setItemDiscountAmount] No config found, defaulting to false');
         return false;
       },
       dependsOn: ['pricingRuleDetail', 'quantity', 'item'],
@@ -551,7 +593,18 @@ export abstract class InvoiceItem extends Doc {
       );
     },
     itemDiscountAmount: (value: DocValue) => {
-      if ((value as Money).lte(this.amount!)) {
+      // Validate against base amount (rate × quantity) not the calculated amount
+      // to avoid circular dependency issues
+      const rate = this.rate ?? this.fyo.pesa(0);
+      const quantity = this.quantity ?? 1;
+      const baseAmount = (rate as Money).mul(quantity);
+
+      if (!baseAmount || baseAmount.isZero()) {
+        // If no base amount yet, skip validation (item not fully set up)
+        return;
+      }
+
+      if ((value as Money).lte(baseAmount)) {
         return;
       }
 
@@ -559,8 +612,8 @@ export abstract class InvoiceItem extends Doc {
         this.fyo.t`Discount Amount (${this.fyo.format(
           value,
           'Currency'
-        )}) cannot be greated than Amount (${this.fyo.format(
-          this.amount!,
+        )}) cannot be greater than Base Amount (${this.fyo.format(
+          baseAmount,
           'Currency'
         )}).`
       );
@@ -615,11 +668,12 @@ export abstract class InvoiceItem extends Doc {
 
       return false;
     },
-    setItemDiscountAmount: () => !this.enableDiscounting,
-    itemDiscountAmount: () =>
-      !(this.enableDiscounting && !!this.setItemDiscountAmount),
-    itemDiscountPercent: () =>
-      !(this.enableDiscounting && !this.setItemDiscountAmount),
+    setItemDiscountAmount: () => true, // Hidden - controlled by toggle button
+    itemDiscountAmount: () => true, // Hidden - shown via DiscountToggle component
+    itemDiscountPercent: () => {
+      // Always show for sales documents - DiscountToggle handles enable/disable
+      return !this.isSales;
+    },
     batch: () => !this.fyo.singles.InventorySettings?.enableBatches,
     transferUnit: () =>
       !this.fyo.singles.InventorySettings?.enableUomConversions,

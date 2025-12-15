@@ -9,7 +9,6 @@
       "label": "Mailing Name",
       "fieldname": "mailingName",
       "fieldtype": "Data",
-      "required": true,
       "section": "Default"
     },
     {
@@ -49,7 +48,6 @@
       "fieldname": "bankName",
       "fieldtype": "Data",
       "readOnly": true,
-      "required": true,
       "section": "Default"
     },
     {
@@ -65,7 +63,6 @@
       "fieldname": "email",
       "label": "Email",
       "fieldtype": "Data",
-      "required": true,
       "section": "Default"
     },
     {
@@ -81,20 +78,6 @@
       "fieldtype": "Link",
       "target": "Account",
       "section": "Accounts"
-    },
-    {
-      "label": "Discount Account",
-      "fieldname": "discountAccount",
-      "fieldtype": "Link",
-      "target": "Account",
-      "section": "Accounts"
-    },
-    {
-      "fieldname": "enableDiscounting",
-      "label": "Enable Discount Accounting",
-      "fieldtype": "Check",
-      "default": false,
-      "section": "Features"
     },
     {
       "fieldname": "enableInventory",
@@ -200,6 +183,31 @@
       "fieldtype": "Date",
       "required": true,
       "section": "Fiscal Year"
+    },
+    {
+      "fieldname": "enableManualInvoiceNumbering",
+      "label": "Enable Manual Invoice Numbering",
+      "fieldtype": "Check",
+      "default": false,
+      "section": "Invoice Numbering",
+      "description": "When disabled, invoices will be auto-numbered starting from 1"
+    },
+    {
+      "fieldname": "invoiceNumberPrefix",
+      "label": "Invoice Number Prefix",
+      "fieldtype": "Data",
+      "section": "Invoice Numbering",
+      "placeholder": "e.g., INV-, SALE-",
+      "description": "Optional prefix for auto-generated invoice numbers"
+    },
+    {
+      "fieldname": "currentInvoiceNumber",
+      "label": "Current Invoice Number",
+      "fieldtype": "Int",
+      "default": 1,
+      "section": "Invoice Numbering",
+      "description": "Next invoice will use this number",
+      "readOnly": true
     },
     {
       "fieldname": "setupComplete",

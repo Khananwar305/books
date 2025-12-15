@@ -202,11 +202,17 @@ export default defineComponent({
       }
     },
     async setupComplete(setupWizardOptions: SetupWizardOptions): Promise<void> {
-      const companyName = setupWizardOptions.companyName;
-      const filePath = await ipc.getDbDefaultPath(companyName);
-      await setupInstance(filePath, setupWizardOptions, fyo);
-      fyo.config.set('lastSelectedFilePath', filePath);
-      await this.setDesk(filePath);
+      try {
+        const companyName = setupWizardOptions.companyName;
+        const filePath = await ipc.getDbDefaultPath(companyName);
+        await setupInstance(filePath, setupWizardOptions, fyo);
+        fyo.config.set('lastSelectedFilePath', filePath);
+        await this.setDesk(filePath);
+      } catch (error) {
+        console.error('Setup failed:', error);
+        await handleErrorWithDialog(error, undefined, true, true);
+        await this.showDbSelector();
+      }
     },
     async showSetupWizardOrDesk(filePath: string): Promise<void> {
       const { countryCode, error, actionSymbol } = await connectToDatabase(
@@ -269,12 +275,11 @@ export default defineComponent({
       throw error;
     },
     async setDeskRoute(): Promise<void> {
-      const { onboardingComplete } = await fyo.doc.getDoc('GetStarted');
-      const { hideGetStarted } = await fyo.doc.getDoc('SystemSettings');
+      let route = localStorage.getItem('lastRoute') || '/';
 
-      let route = '/get-started';
-      if (hideGetStarted || onboardingComplete) {
-        route = localStorage.getItem('lastRoute') || '/';
+      // Redirect to dashboard if lastRoute was get-started (removed route)
+      if (route === '/get-started') {
+        route = '/';
       }
 
       await routeTo(route);

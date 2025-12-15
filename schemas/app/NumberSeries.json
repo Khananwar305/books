@@ -4,27 +4,32 @@
   "naming": "manual",
   "isSingle": false,
   "isChild": false,
+  "create": false,
   "fields": [
     {
       "fieldname": "name",
       "label": "Prefix",
       "fieldtype": "Data",
-      "required": true
+      "required": true,
+      "readOnly": true,
+      "hidden": true
     },
     {
       "fieldname": "start",
-      "label": "Start",
+      "label": "Starting Number",
       "fieldtype": "Int",
       "default": 1001,
       "required": true,
-      "minvalue": 0
+      "minvalue": 0,
+      "description": "The first invoice will start from this number"
     },
     {
       "fieldname": "padZeros",
-      "label": "Pad Zeros",
+      "label": "Number of Digits",
       "fieldtype": "Int",
       "default": 4,
-      "required": true
+      "required": true,
+      "description": "How many digits to use (e.g., 4 = 0001, 0002, ...)"
     },
     {
       "fieldname": "referenceType",
@@ -38,6 +43,10 @@
         {
           "value": "SalesQuote",
           "label": "Sales Quote"
+        },
+        {
+          "value": "SalesOrder",
+          "label": "Sales Order"
         },
         {
           "value": "PurchaseInvoice",
@@ -56,6 +65,10 @@
           "label": "Stock Movement"
         },
         {
+          "value": "StockItems",
+          "label": "Stock Items"
+        },
+        {
           "value": "Shipment",
           "label": "Shipment"
         },
@@ -68,15 +81,17 @@
           "label": "Pricing Rule"
         }
       ],
-      "default": "-",
+      "default": "SalesInvoice",
       "required": true
     },
     {
       "fieldname": "current",
-      "label": "Current",
+      "label": "Current Number",
       "fieldtype": "Int",
+      "default": 0,
       "required": true,
-      "readOnly": true
+      "readOnly": true,
+      "description": "The next invoice will use this number (auto-incremented)"
     }
   ],
   "quickEditFields": ["referenceType", "start", "padZeros"]

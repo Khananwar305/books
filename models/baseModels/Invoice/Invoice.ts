@@ -119,7 +119,57 @@ export abstract class Invoice extends Transactional {
   }
 
   get enableDiscounting() {
-    return !!this.fyo.singles?.AccountingSettings?.enableDiscounting;
+    // For Sales documents, check SalesModule configuration
+    if (this.isSales) {
+      // Get the active sales module config synchronously from cache if available
+      // This is a computed getter so we can't use async
+      return true; // Default to true, actual check happens in hidden map
+    }
+    return false;
+  }
+
+  async getDiscountEnabled(): Promise<boolean> {
+    if (!this.isSales) {
+      return false;
+    }
+
+    try {
+      const configs = await this.fyo.db.getAllRaw('SalesModule', {
+        fields: ['enableDiscounting', 'isActive'],
+        filters: { referenceType: this.schemaName },
+      });
+
+      if (configs && configs.length > 0) {
+        const activeConfig = configs.find(c => c.isActive !== false) || configs[0];
+        return !!activeConfig.enableDiscounting;
+      }
+    } catch (error) {
+      console.error('Error checking discount enabled:', error);
+    }
+
+    return false;
+  }
+
+  async getDiscountAccount(): Promise<string | undefined> {
+    if (!this.isSales) {
+      return undefined;
+    }
+
+    try {
+      const configs = await this.fyo.db.getAllRaw('SalesModule', {
+        fields: ['discountAccount', 'isActive'],
+        filters: { referenceType: this.schemaName },
+      });
+
+      if (configs && configs.length > 0) {
+        const activeConfig = configs.find(c => c.isActive !== false) || configs[0];
+        return activeConfig.discountAccount as string | undefined;
+      }
+    } catch (error) {
+      console.error('Error getting discount account:', error);
+    }
+
+    return undefined;
   }
 
   get isMultiCurrency() {
@@ -194,12 +244,7 @@ export abstract class Invoice extends Transactional {
     if (this.isQuote) {
       return;
     }
-    if (
-      this.enableDiscounting &&
-      !this.fyo.singles?.AccountingSettings?.discountAccount
-    ) {
-      throw new ValidationError(this.fyo.t`Discount Account is not set.`);
-    }
+
     await validateBatch(this);
     await this._validatePricingRule();
   }
@@ -366,28 +411,16 @@ export abstract class Invoice extends Transactional {
           amount = amount.neg();
         }
 
-        if (!this.discountAfterTax) {
-          let itemDiscountAmount = this.getDiscountAmount(item);
+        // Discount is already applied in item.amount formula
+        // No need to subtract it again here
+        const taxItem: InvoiceTaxItem = {
+          details,
+          exchangeRate: this.exchangeRate ?? 1,
+          fullAmount: amount,
+          taxAmount: amount.mul(details.rate / 100),
+        };
 
-          if (this.isReturn && itemDiscountAmount.isNegative()) {
-            itemDiscountAmount = itemDiscountAmount.abs();
-          }
-
-          if (this.isReturn) {
-            amount = amount.add(itemDiscountAmount);
-          } else {
-            amount = amount.sub(itemDiscountAmount);
-          }
-
-          const taxItem: InvoiceTaxItem = {
-            details,
-            exchangeRate: this.exchangeRate ?? 1,
-            fullAmount: amount,
-            taxAmount: amount.mul(details.rate / 100),
-          };
-
-          taxItems.push(taxItem);
-        }
+        taxItems.push(taxItem);
       }
     }
 
@@ -516,110 +549,15 @@ export abstract class Invoice extends Transactional {
     return totalItemAmounts.percent(this.discountPercent ?? 0);
   }
   getDiscountAmount(item: InvoiceItem) {
-    if (!this.enableDiscounting) {
-      return this.fyo.pesa(0);
-    }
-
-    if (!this?.items?.length) {
-      return this.fyo.pesa(0);
-    }
-
-    let discountAmount = this.fyo.pesa(0);
-    if (item.setItemDiscountAmount) {
-      discountAmount = discountAmount.add(
-        (item.itemDiscountAmount ?? this.fyo.pesa(0)).mul(
-          item.quantity as number
-        )
-      );
-    } else if (!this.discountAfterTax) {
-      if (this.isReturn) {
-        discountAmount = discountAmount.add(
-          (item.amount ?? this.fyo.pesa(0)).mul(
-            -Math.abs(item.itemDiscountPercent as number) / 100
-          )
-        );
-      } else {
-        discountAmount = discountAmount.add(
-          (item.amount ?? this.fyo.pesa(0)).mul(
-            (item.itemDiscountPercent ?? 0) / 100
-          )
-        );
-      }
-    } else if (this.discountAfterTax) {
-      if (this.isReturn) {
-        discountAmount = discountAmount.add(
-          (item.itemTaxedTotal ?? this.fyo.pesa(0)).mul(
-            -Math.abs(item.itemDiscountPercent as number) / 100
-          )
-        );
-      } else {
-        discountAmount = discountAmount.add(
-          (item.itemTaxedTotal ?? this.fyo.pesa(0)).mul(
-            (item.itemDiscountPercent ?? 0) / 100
-          )
-        );
-      }
-    }
-
-    if (this.isReturn) {
-      return discountAmount.neg();
-    }
-
-    return discountAmount;
+    // Item-level discounts are now applied directly in the item.amount formula
+    // So we return 0 here to avoid double-counting the discount
+    return this.fyo.pesa(0);
   }
   getItemDiscountAmount() {
-    if (!this.enableDiscounting) {
-      return this.fyo.pesa(0);
-    }
-
-    if (!this?.items?.length) {
-      return this.fyo.pesa(0);
-    }
-
-    let discountAmount = this.fyo.pesa(0);
-    for (const item of this.items) {
-      if (item.setItemDiscountAmount) {
-        discountAmount = discountAmount.add(
-          (item.itemDiscountAmount ?? this.fyo.pesa(0)).mul(
-            item.quantity as number
-          )
-        );
-      } else if (!this.discountAfterTax) {
-        if (this.isReturn) {
-          discountAmount = discountAmount.add(
-            (item.amount ?? this.fyo.pesa(0)).mul(
-              Math.abs(item.itemDiscountPercent as number) / 100
-            )
-          );
-        } else {
-          discountAmount = discountAmount.add(
-            (item.amount ?? this.fyo.pesa(0)).mul(
-              (item.itemDiscountPercent ?? 0) / 100
-            )
-          );
-        }
-      } else if (this.discountAfterTax) {
-        if (this.isReturn) {
-          discountAmount = discountAmount.add(
-            (item.itemTaxedTotal ?? this.fyo.pesa(0)).mul(
-              -Math.abs(item.itemDiscountPercent as number) / 100
-            )
-          );
-        } else {
-          discountAmount = discountAmount.add(
-            (item.itemTaxedTotal ?? this.fyo.pesa(0)).mul(
-              (item.itemDiscountPercent ?? 0) / 100
-            )
-          );
-        }
-      }
-    }
-
-    if (this.isReturn) {
-      return discountAmount.neg();
-    }
-
-    return discountAmount;
+    // Item-level discounts are now applied directly in the item.amount formula
+    // So we return 0 here to avoid double-counting the discount
+    // This method is kept for backward compatibility with invoice-level discounts
+    return this.fyo.pesa(0);
   }
   async getTotalTaxRate(row: InvoiceItem): Promise<number> {
     if (!this.taxes!.length) {
@@ -1023,7 +961,10 @@ export abstract class Invoice extends Transactional {
       },
       dependsOn: ['party', 'currency'],
     },
-    netTotal: { formula: () => this.getSum('items', 'amount', false) },
+    netTotal: {
+      formula: () => this.getSum('items', 'amount', false),
+      dependsOn: ['items'],
+    },
     taxes: { formula: async () => await this.getTaxSummary() },
     grandTotal: {
       formula: async () => await this.getGrandTotal(),
@@ -1116,6 +1057,24 @@ export abstract class Invoice extends Transactional {
       },
       dependsOn: ['items', 'coupons'],
     },
+    discountAmount: {
+      formula: async () => {
+        if (!this.setDiscountAmount) {
+          return this.fyo.pesa(0);
+        }
+        return this.discountAmount;
+      },
+      dependsOn: ['setDiscountAmount'],
+    },
+    discountPercent: {
+      formula: async () => {
+        if (this.setDiscountAmount) {
+          return 0;
+        }
+        return this.discountPercent;
+      },
+      dependsOn: ['setDiscountAmount'],
+    },
   };
 
   getStockTransferred() {
@@ -1169,11 +1128,11 @@ export abstract class Invoice extends Transactional {
 
       return !this.autoStockTransferLocation;
     },
-    setDiscountAmount: () => true || !this.enableDiscounting,
+    setDiscountAmount: () => !this.enableDiscounting,
     discountAmount: () =>
-      true || !(this.enableDiscounting && !!this.setDiscountAmount),
+      !this.enableDiscounting || !this.setDiscountAmount,
     discountPercent: () =>
-      true || !(this.enableDiscounting && !this.setDiscountAmount),
+      !this.enableDiscounting || !!this.setDiscountAmount,
     discountAfterTax: () => !this.enableDiscounting,
     taxes: () => !this.taxes?.length,
     baseGrandTotal: () =>

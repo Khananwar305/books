@@ -21,7 +21,66 @@ export class CreateCOA {
 
   async run() {
     const chart = await getCOA(this.chartOfAccounts);
-    await this.createCOAAccounts(chart, null, '', true);
+    await this.createCOAAccountsOptimized(chart, null, '', true);
+  }
+
+  async createCOAAccountsOptimized(
+    children: COATree | COARootAccount | COAChildAccount,
+    parentAccount: string | null,
+    rootType: AccountRootType | '',
+    rootAccount: boolean
+  ) {
+    // Create accounts at current level in parallel
+    const accountPromises = [];
+    const childProcessing = [];
+
+    for (const rootName in children) {
+      if (accountFields.includes(rootName)) {
+        continue;
+      }
+
+      const child = children[rootName];
+
+      if (rootAccount) {
+        rootType = (child as COARootAccount).rootType;
+      }
+
+      const accountType = (child as COAChildAccount).accountType ?? '';
+      const accountNumber = (child as COAChildAccount).accountNumber;
+      const accountName = getAccountName(rootName, accountNumber);
+
+      const isGroup = identifyIsGroup(
+        child as COAChildAccount | COARootAccount
+      );
+
+      const doc = this.fyo.doc.getNewDoc('Account', {
+        name: accountName,
+        parentAccount,
+        isGroup,
+        rootType,
+        accountType,
+      });
+
+      // Add to parallel creation batch
+      accountPromises.push(doc.sync());
+
+      // Store child processing for after parent creation
+      childProcessing.push({
+        child: child as COAChildAccount,
+        accountName,
+        rootType,
+      });
+    }
+
+    // Wait for all accounts at this level to be created
+    await Promise.all(accountPromises);
+
+    // Now process children in parallel
+    const childPromises = childProcessing.map(({ child, accountName, rootType }) =>
+      this.createCOAAccountsOptimized(child, accountName, rootType, false)
+    );
+
+    await Promise.all(childPromises);
   }
 
   async createCOAAccounts(

@@ -1,0 +1,35 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find:*)",
+      "Bash(npm run dev:*)",
+      "Bash(mkdir:*)",
+      "Bash(taskkill:*)",
+      "Bash(taskkill /F /PID 4920)",
+      "Read(//c/Users/HP/Pictures/Screenshots/**)",
+      "Bash(cat:*)",
+      "Bash(timeout:*)",
+      "Bash(netstat:*)",
+      "Bash(findstr:*)",
+      "Bash(ping:*)",
+      "Bash(nul)",
+      "Bash(npm run typecheck:*)",
+      "Bash(npm run:*)",
+      "Bash(tasklist:*)",
+      "Bash(dir D:projectbooks*.db /s /b 2)",
+      "Bash(dir:*)",
+      "Bash(git checkout:*)",
+      "Bash(sqlite3:*)",
+      "Bash(node check-numberseries.js:*)",
+      "Bash(npm rebuild:*)",
+      "Bash(node test-prefix-edit.js)",
+      "Bash(set WIN_CSC_LINK=:*)",
+      "Bash(set CSC_LINK=)",
+      "Bash(set:*)",
+      "Bash(xcopy:*)",
+      "Bash(ls:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

@@ -1,0 +1,167 @@
+{
+  "name": "Role",
+  "label": "Role",
+  "naming": "manual",
+  "isSingle": false,
+  "isChild": false,
+  "keywordFields": ["name"],
+  "fields": [
+    {
+      "fieldname": "name",
+      "label": "Role Name",
+      "fieldtype": "Data",
+      "required": true,
+      "placeholder": "e.g., Owner, Manager, Accountant"
+    },
+    {
+      "fieldname": "description",
+      "label": "Description",
+      "fieldtype": "Text",
+      "placeholder": "Describe what this role can do"
+    },
+    {
+      "fieldname": "isOwner",
+      "label": "Is Owner",
+      "fieldtype": "Check",
+      "default": false,
+      "description": "Owner role has all permissions"
+    },
+    {
+      "fieldname": "canCreateInvoices",
+      "label": "Can Create Invoices",
+      "fieldtype": "Check",
+      "default": false
+    },
+    {
+      "fieldname": "canEditInvoices",
+      "label": "Can Edit Invoices",
+      "fieldtype": "Check",
+      "default": false
+    },
+    {
+      "fieldname": "canDeleteInvoices",
+      "label": "Can Delete Invoices",
+      "fieldtype": "Check",
+      "default": false
+    },
+    {
+      "fieldname": "canSubmitInvoices",
+      "label": "Can Submit Invoices",
+      "fieldtype": "Check",
+      "default": false
+    },
+    {
+      "fieldname": "canCreateCustomers",
+      "label": "Can Create Customers",
+      "fieldtype": "Check",
+      "default": false
+    },
+    {
+      "fieldname": "canEditCustomers",
+      "label": "Can Edit Customers",
+      "fieldtype": "Check",
+      "default": false
+    },
+    {
+      "fieldname": "canDeleteCustomers",
+      "label": "Can Delete Customers",
+      "fieldtype": "Check",
+      "default": false
+    },
+    {
+      "fieldname": "canCreateSuppliers",
+      "label": "Can Create Suppliers",
+      "fieldtype": "Check",
+      "default": false
+    },
+    {
+      "fieldname": "canEditSuppliers",
+      "label": "Can Edit Suppliers",
+      "fieldtype": "Check",
+      "default": false
+    },
+    {
+      "fieldname": "canDeleteSuppliers",
+      "label": "Can Delete Suppliers",
+      "fieldtype": "Check",
+      "default": false
+    },
+    {
+      "fieldname": "canCreateItems",
+      "label": "Can Create Items",
+      "fieldtype": "Check",
+      "default": false
+    },
+    {
+      "fieldname": "canEditItems",
+      "label": "Can Edit Items",
+      "fieldtype": "Check",
+      "default": false
+    },
+    {
+      "fieldname": "canDeleteItems",
+      "label": "Can Delete Items",
+      "fieldtype": "Check",
+      "default": false
+    },
+    {
+      "fieldname": "canViewReports",
+      "label": "Can View Reports",
+      "fieldtype": "Check",
+      "default": false
+    },
+    {
+      "fieldname": "canExportReports",
+      "label": "Can Export Reports",
+      "fieldtype": "Check",
+      "default": false
+    },
+    {
+      "fieldname": "canEditAccounts",
+      "label": "Can Edit Accounts",
+      "fieldtype": "Check",
+      "default": false
+    },
+    {
+      "fieldname": "canMakePayments",
+      "label": "Can Make Payments",
+      "fieldtype": "Check",
+      "default": false
+    },
+    {
+      "fieldname": "canManageUsers",
+      "label": "Can Manage Users",
+      "fieldtype": "Check",
+      "default": false
+    },
+    {
+      "fieldname": "canManageRoles",
+      "label": "Can Manage Roles",
+      "fieldtype": "Check",
+      "default": false
+    },
+    {
+      "fieldname": "canAccessSettings",
+      "label": "Can Access Settings",
+      "fieldtype": "Check",
+      "default": false
+    },
+    {
+      "fieldname": "canImportData",
+      "label": "Can Import Data",
+      "fieldtype": "Check",
+      "default": false
+    },
+    {
+      "fieldname": "canExportData",
+      "label": "Can Export Data",
+      "fieldtype": "Check",
+      "default": false
+    }
+  ],
+  "quickEditFields": [
+    "name",
+    "description",
+    "isOwner"
+  ]
+}

@@ -1,0 +1,5 @@
+{
+  "name": "SalesOrderItem",
+  "label": "Sales Order Item",
+  "extends": "InvoiceItem"
+}

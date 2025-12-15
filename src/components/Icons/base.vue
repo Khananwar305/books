@@ -9,25 +9,27 @@ export default {
   },
   computed: {
     lightColor(): string {
-      const activeGray = this.darkMode
-        ? uicolors.gray['500']
-        : uicolors.gray['600'];
-      const passiveGray = this.darkMode
-        ? uicolors.gray['700']
-        : uicolors.gray['400'];
-      return this.active ? activeGray : passiveGray;
+      // Use blue tones to match sidebar background
+      const activeBlue = this.darkMode
+        ? uicolors.blue['400']
+        : uicolors.blue['700'];
+      const passiveBlue = this.darkMode
+        ? uicolors.blue['500']
+        : uicolors.blue['500'];
+      return this.active ? activeBlue : passiveBlue;
     },
     darkColor(): string {
-      const activeGray = this.darkMode
-        ? uicolors.gray['200']
-        : uicolors.gray['800'];
-      const passiveGray = this.darkMode
-        ? uicolors.gray['500']
-        : uicolors.gray['600'];
-      return this.active ? activeGray : passiveGray;
+      // Use darker blue tones for contrast
+      const activeBlue = this.darkMode
+        ? uicolors.blue['300']
+        : uicolors.blue['900'];
+      const passiveBlue = this.darkMode
+        ? uicolors.blue['400']
+        : uicolors.blue['700'];
+      return this.active ? activeBlue : passiveBlue;
     },
     bgColor(): string {
-      return this.darkMode ? uicolors.gray['900'] : uicolors.gray['100'];
+      return this.darkMode ? uicolors.blue['900'] : uicolors.blue['50'];
     },
   },
 };

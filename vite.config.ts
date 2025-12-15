@@ -22,6 +22,11 @@ export default () => {
     server: { host, port, strictPort: true },
     root: path.resolve(__dirname, './src'),
     plugins: [vue()],
+    build: {
+      rollupOptions: {
+        external: ['crypto']
+      }
+    },
     resolve: {
       alias: {
         vue: 'vue/dist/vue.esm-bundler.js',

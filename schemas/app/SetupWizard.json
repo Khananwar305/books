@@ -17,7 +17,8 @@
       "placeholder": "Company Name",
       "fieldtype": "Data",
       "section": "Default",
-      "columns": 2
+      "columns": 2,
+      "required": true
     },
     {
       "fieldname": "mailingName",
@@ -38,62 +39,99 @@
       "placeholder": "Select State/Province"
     },
     {
+      "fieldname": "country",
+      "label": "Country",
+      "fieldtype": "AutoComplete",
+      "placeholder": "Select Country",
+      "columns": 1,
+      "required": true
+    },
+    {
       "fieldname": "pincode",
       "label": "Pin Code",
       "fieldtype": "Data",
-      "placeholder": "Pin Code"
-    },
-    {
-      "fieldname": "phone",
-      "label": "Telephone No",
-      "fieldtype": "Data",
-      "placeholder": "Telephone No"
+      "placeholder": "Pin Code",
+      "columns": 1
     },
     {
       "fieldname": "email",
       "label": "Email",
       "fieldtype": "Data",
-      "placeholder": "john@doe.com"
+      "placeholder": "john@doe.com",
+      "columns": 1
     },
     {
-      "fieldname": "country",
-      "label": "Country",
-      "fieldtype": "AutoComplete",
-      "placeholder": "Select Country"
+      "fieldname": "phone",
+      "label": "Telephone No",
+      "fieldtype": "Data",
+      "placeholder": "Telephone No",
+      "columns": 1
+    },
+    {
+      "fieldname": "website",
+      "label": "Website",
+      "fieldtype": "Data",
+      "placeholder": "www.example.com",
+      "columns": 1
+    },
+    {
+      "fieldname": "fax",
+      "label": "Fax No",
+      "fieldtype": "Data",
+      "placeholder": "Fax No",
+      "columns": 1
     },
     {
       "fieldname": "currency",
-      "label": "Currency",
+      "label": "Base Currency",
       "fieldtype": "AutoComplete",
-      "placeholder": "Currency"
-    },
-    {
-      "fieldname": "bankName",
-      "label": "Bank Name",
-      "fieldtype": "Data",
-      "placeholder": "Prime Bank",
-      "section": "Accounting"
+      "placeholder": "Base Currency",
+      "columns": 1,
+      "required": true
     },
     {
       "fieldname": "chartOfAccounts",
       "label": "Chart of Accounts",
       "fieldtype": "AutoComplete",
       "placeholder": "Select CoA",
-      "section": "Accounting"
+      "columns": 1,
+      "required": true
     },
     {
       "fieldname": "fiscalYearStart",
       "label": "Fiscal Year Start Date",
       "placeholder": "Fiscal Year Start Date",
-      "fieldtype": "Date",
-      "section": "Accounting"
+      "fieldtype": "Date"
     },
     {
       "fieldname": "fiscalYearEnd",
       "label": "Fiscal Year End Date",
       "placeholder": "Fiscal Year End Date",
-      "fieldtype": "Date",
-      "section": "Accounting"
+      "fieldtype": "Date"
+    },
+    {
+      "fieldname": "gstin",
+      "label": "GSTIN",
+      "fieldtype": "Data",
+      "placeholder": "GST Identification Number",
+      "section": "Tax Details",
+      "hidden": true
+    },
+    {
+      "fieldname": "vatNumber",
+      "label": "VAT Number",
+      "fieldtype": "Data",
+      "placeholder": "VAT Registration Number",
+      "section": "Tax Details",
+      "hidden": true
+    },
+    {
+      "fieldname": "tanNumber",
+      "label": "TAN Number",
+      "fieldtype": "Data",
+      "placeholder": "Tax Deduction Account Number",
+      "section": "Tax Details",
+      "hidden": true
     },
     {
       "fieldname": "completed",
@@ -109,7 +147,8 @@
     "district",
     "pincode",
     "phone",
-    "bankName",
+    "website",
+    "fax",
     "country",
     "currency",
     "chartOfAccounts",

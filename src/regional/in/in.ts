@@ -14,15 +14,19 @@ async function createTaxes(fyo: Fyo) {
     'Exempt-IGST': [0],
   };
 
+  const taxPromises = [];
+
   for (const type of Object.keys(GSTs)) {
     for (const percent of GSTs[type as TaxType]) {
       const name = `${type}-${percent}`;
       const details = getTaxDetails(type as TaxType, percent);
 
       const newTax = fyo.doc.getNewDoc('Tax', { name, details });
-      await newTax.sync();
+      taxPromises.push(newTax.sync());
     }
   }
+
+  await Promise.all(taxPromises);
 }
 
 function getTaxDetails(type: TaxType, percent: number) {

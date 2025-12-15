@@ -2,17 +2,72 @@
   "name": "SalesInvoice",
   "label": "Sales Invoice",
   "extends": "Invoice",
-  "naming": "numberSeries",
+  "naming": "manual",
   "showTitle": true,
+  "quickEditFields": [
+    "name",
+    "date",
+    "referenceType",
+    "quote",
+    "party",
+    "account",
+    "priceList"
+  ],
   "fields": [
+    {
+      "fieldname": "name",
+      "label": "Invoice No",
+      "fieldtype": "Data",
+      "required": true,
+      "section": "Default",
+      "columns": 1,
+      "placeholder": "Will be auto-generated on save"
+    },
+    {
+      "fieldname": "date",
+      "label": "Date",
+      "fieldtype": "Date",
+      "required": true,
+      "section": "Default"
+    },
+    {
+      "fieldname": "referenceType",
+      "label": "Reference Type",
+      "fieldtype": "Select",
+      "options": [
+        {
+          "value": "SalesQuote",
+          "label": "Sales Quote"
+        },
+        {
+          "value": "SalesOrder",
+          "label": "Sales Order"
+        }
+      ],
+      "section": "Default",
+      "required": false
+    },
+    {
+      "fieldname": "quote",
+      "label": "Reference",
+      "fieldtype": "DynamicLink",
+      "references": "referenceType",
+      "section": "Default",
+      "required": false
+    },
     {
       "fieldname": "numberSeries",
       "label": "Number Series",
       "fieldtype": "Link",
       "target": "NumberSeries",
-      "create": true,
-      "required": true,
-      "default": "SINV-",
+      "hidden": true,
+      "section": "Default"
+    },
+    {
+      "fieldname": "_numberingMethod",
+      "label": "Numbering Method",
+      "fieldtype": "Data",
+      "hidden": true,
       "section": "Default"
     },
     {
@@ -22,6 +77,22 @@
       "target": "Party",
       "create": true,
       "required": true,
+      "section": "Default"
+    },
+    {
+      "fieldname": "account",
+      "label": "Account",
+      "fieldtype": "Link",
+      "target": "Account",
+      "create": true,
+      "required": true,
+      "section": "Default"
+    },
+    {
+      "fieldname": "priceList",
+      "label": "Price List",
+      "fieldtype": "Link",
+      "target": "PriceList",
       "section": "Default"
     },
     {
@@ -37,14 +108,6 @@
       "fieldtype": "Link",
       "target": "Shipment",
       "section": "References"
-    },
-    {
-      "fieldname": "quote",
-      "label": "Quote Reference",
-      "fieldtype": "Link",
-      "target": "SalesQuote",
-      "section": "References",
-      "required": false
     },
     {
       "fieldname": "makeAutoStockTransfer",

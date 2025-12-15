@@ -393,11 +393,6 @@ export class SetupWizard extends Doc {
         throw new Error(t`Please enter Company Name first`);
       }
     },
-    bankName: (value: unknown) => {
-      if (!this.companyName && value) {
-        throw new Error(t`Please enter Company Name first`);
-      }
-    },
     chartOfAccounts: (value: unknown) => {
       if (!this.companyName && value) {
         throw new Error(t`Please enter Company Name first`);

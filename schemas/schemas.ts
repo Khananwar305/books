@@ -16,6 +16,8 @@ import Misc from './app/Misc.json';
 import NumberSeries from './app/NumberSeries.json';
 import Party from './app/Party.json';
 import Lead from './app/Lead.json';
+import Role from './app/Role.json';
+import User from './app/User.json';
 import LoyaltyProgram from './app/LoyaltyProgram.json';
 import LoyaltyPointEntry from './app/LoyaltyPointEntry.json';
 import CollectionRulesItems from './app/CollectionRulesItems.json';
@@ -37,6 +39,9 @@ import SalesInvoice from './app/SalesInvoice.json';
 import SalesInvoiceItem from './app/SalesInvoiceItem.json';
 import SalesQuote from './app/SalesQuote.json';
 import SalesQuoteItem from './app/SalesQuoteItem.json';
+import SalesOrder from './app/SalesOrder.json';
+import SalesOrderItem from './app/SalesOrderItem.json';
+import SalesModule from './app/SalesModule.json';
 import SetupWizard from './app/SetupWizard.json';
 import Tax from './app/Tax.json';
 import TaxDetail from './app/TaxDetail.json';
@@ -115,6 +120,8 @@ export const appSchemas: Schema[] | SchemaStub[] = [
 
   Party as Schema,
   Lead as Schema,
+  Role as Schema,
+  User as Schema,
   Address as Schema,
   ItemGroup as Schema,
   Item as Schema,
@@ -137,11 +144,14 @@ export const appSchemas: Schema[] | SchemaStub[] = [
   SalesInvoice as Schema,
   PurchaseInvoice as Schema,
   SalesQuote as Schema,
+  SalesOrder as Schema,
+  SalesModule as Schema,
 
   InvoiceItem as Schema,
   SalesInvoiceItem as SchemaStub,
   PurchaseInvoiceItem as SchemaStub,
   SalesQuoteItem as SchemaStub,
+  SalesOrderItem as SchemaStub,
   CouponCode as Schema,
   AppliedCouponCodes as Schema,
 

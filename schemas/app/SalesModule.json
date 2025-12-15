@@ -1,0 +1,271 @@
+{
+  "name": "SalesModule",
+  "label": "Sales Module",
+  "naming": "manual",
+  "isSingle": false,
+  "isChild": false,
+  "fields": [
+    {
+      "fieldname": "name",
+      "label": "Configuration Name",
+      "fieldtype": "Data",
+      "required": true,
+      "readOnly": true,
+      "placeholder": "e.g., Default, Export, Wholesale",
+      "description": "Auto-generated based on document type",
+      "section": "Default"
+    },
+    {
+      "fieldname": "referenceType",
+      "label": "Document Type",
+      "fieldtype": "Select",
+      "options": [
+        {
+          "value": "SalesInvoice",
+          "label": "Sales Invoice"
+        },
+        {
+          "value": "SalesQuote",
+          "label": "Sales Quote"
+        },
+        {
+          "value": "SalesOrder",
+          "label": "Sales Order"
+        },
+        {
+          "value": "PurchaseInvoice",
+          "label": "Purchase Invoice"
+        },
+        {
+          "value": "Payment",
+          "label": "Payment"
+        },
+        {
+          "value": "JournalEntry",
+          "label": "Journal Entry"
+        },
+        {
+          "value": "StockMovement",
+          "label": "Stock Movement"
+        },
+        {
+          "value": "Shipment",
+          "label": "Shipment"
+        }
+      ],
+      "default": "SalesInvoice",
+      "required": true,
+      "readOnly": false,
+      "section": "Default"
+    },
+    {
+      "fieldname": "start",
+      "label": "Starting Number",
+      "fieldtype": "Int",
+      "default": 1,
+      "required": true,
+      "minvalue": 0,
+      "section": "General"
+    },
+    {
+      "fieldname": "padZeros",
+      "label": "Number of Digits",
+      "fieldtype": "Int",
+      "default": 2,
+      "required": true,
+      "section": "General"
+    },
+    {
+      "fieldname": "current",
+      "label": "Current Number",
+      "fieldtype": "Int",
+      "default": 0,
+      "required": true,
+      "readOnly": true,
+      "section": "General"
+    },
+    {
+      "fieldname": "numberSeries",
+      "label": "Number Series",
+      "fieldtype": "Link",
+      "target": "NumberSeries",
+      "readOnly": true,
+      "section": "General"
+    },
+    {
+      "fieldname": "abbreviation",
+      "label": "Abbreviation",
+      "fieldtype": "Data",
+      "placeholder": "e.g., Sale, INV",
+      "section": "General"
+    },
+    {
+      "fieldname": "isActive",
+      "label": "Activate this Configuration",
+      "fieldtype": "Check",
+      "default": true,
+      "section": "General"
+    },
+    {
+      "fieldname": "numberingMethod",
+      "label": "Method of Voucher Numbering",
+      "fieldtype": "Select",
+      "options": [
+        {
+          "value": "Automatic",
+          "label": "Automatic"
+        },
+        {
+          "value": "Manual",
+          "label": "Manual"
+        }
+      ],
+      "default": "Automatic",
+      "section": "General"
+    },
+    {
+      "fieldname": "usePrefix",
+      "label": "Use Prefix",
+      "fieldtype": "Check",
+      "default": true,
+      "section": "General"
+    },
+    {
+      "fieldname": "retainOriginalNumber",
+      "label": "Retain Original Voucher No.",
+      "fieldtype": "Check",
+      "default": true,
+      "description": "Numbering behaviour on insertion/deletion",
+      "section": "General"
+    },
+    {
+      "fieldname": "showUnusedNumbers",
+      "label": "Show unused voucher numbers in transactions",
+      "fieldtype": "Check",
+      "default": false,
+      "section": "General"
+    },
+    {
+      "fieldname": "useEffectiveDates",
+      "label": "Use effective dates for vouchers",
+      "fieldtype": "Check",
+      "default": false,
+      "section": "General"
+    },
+    {
+      "fieldname": "allowZeroValuedTransactions",
+      "label": "Allow zero-valued transactions",
+      "fieldtype": "Check",
+      "default": false,
+      "section": "General"
+    },
+    {
+      "fieldname": "makeOptionalByDefault",
+      "label": "Make this voucher type as 'Optional' by default",
+      "fieldtype": "Check",
+      "default": false,
+      "section": "General"
+    },
+    {
+      "fieldname": "allowNarration",
+      "label": "Allow narration in voucher",
+      "fieldtype": "Check",
+      "default": true,
+      "section": "General"
+    },
+    {
+      "fieldname": "provideNarrationForEachLedger",
+      "label": "Provide narrations for each ledger in voucher",
+      "fieldtype": "Check",
+      "default": false,
+      "section": "General"
+    },
+    {
+      "fieldname": "enableDefaultAccountingAllocations",
+      "label": "Enable default accounting allocations",
+      "fieldtype": "Check",
+      "default": false,
+      "section": "General"
+    },
+    {
+      "fieldname": "whatsAppAfterSaving",
+      "label": "WhatsApp voucher after saving",
+      "fieldtype": "Check",
+      "default": false,
+      "section": "General"
+    },
+    {
+      "fieldname": "printAfterSaving",
+      "label": "Print voucher after saving",
+      "fieldtype": "Check",
+      "default": false,
+      "section": "Printing"
+    },
+    {
+      "fieldname": "useForPOSInvoicing",
+      "label": "Use for POS invoicing",
+      "fieldtype": "Check",
+      "default": false,
+      "section": "Printing"
+    },
+    {
+      "fieldname": "defaultTitleToPrint",
+      "label": "Default title to print",
+      "fieldtype": "Data",
+      "placeholder": "e.g., Invoice, Bill, Receipt",
+      "section": "Printing"
+    },
+    {
+      "fieldname": "defaultBank",
+      "label": "Default bank",
+      "fieldtype": "Link",
+      "target": "Account",
+      "section": "Printing"
+    },
+    {
+      "fieldname": "defaultJurisdiction",
+      "label": "Default jurisdiction",
+      "fieldtype": "Data",
+      "section": "Printing"
+    },
+    {
+      "fieldname": "setAlterDeclaration",
+      "label": "Set/alter declaration",
+      "fieldtype": "Check",
+      "default": false,
+      "section": "Printing"
+    },
+    {
+      "fieldname": "enableDiscounting",
+      "label": "Enable Discount",
+      "fieldtype": "Check",
+      "default": false,
+      "section": "General"
+    },
+    {
+      "fieldname": "discountAccount",
+      "label": "Discount Account",
+      "fieldtype": "Link",
+      "target": "Account",
+      "section": "General"
+    },
+    {
+      "fieldname": "discountType",
+      "label": "Discount Type",
+      "fieldtype": "Select",
+      "options": [
+        {
+          "value": "percent",
+          "label": "Discount in %"
+        },
+        {
+          "value": "amount",
+          "label": "Discount in Amount"
+        }
+      ],
+      "default": "percent",
+      "section": "General"
+    }
+  ],
+  "quickEditFields": ["name", "referenceType"]
+}

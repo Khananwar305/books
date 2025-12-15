@@ -1,7 +1,6 @@
 import ChartOfAccounts from 'src/pages/ChartOfAccounts.vue';
 import CommonForm from 'src/pages/CommonForm/CommonForm.vue';
 import Dashboard from 'src/pages/Dashboard/Dashboard.vue';
-import GetStarted from 'src/pages/GetStarted.vue';
 import ImportWizard from 'src/pages/ImportWizard.vue';
 import ListView from 'src/pages/ListView/ListView.vue';
 import PrintView from 'src/pages/PrintView/PrintView.vue';
@@ -10,6 +9,9 @@ import QuickEditForm from 'src/pages/QuickEditForm.vue';
 import Report from 'src/pages/Report.vue';
 import ReportsHub from 'src/pages/ReportsHub.vue';
 import SetupHub from 'src/pages/SetupHub.vue';
+import SalesSetup from 'src/pages/SalesSetup.vue';
+import PurchaseSetup from 'src/pages/PurchaseSetup.vue';
+import ConfigureSalesModules from 'src/pages/ConfigureSalesModules.vue';
 import Settings from 'src/pages/Settings/Settings.vue';
 import TemplateBuilder from 'src/pages/TemplateBuilder/TemplateBuilder.vue';
 import CustomizeForm from 'src/pages/CustomizeForm/CustomizeForm.vue';
@@ -22,10 +24,6 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/',
     component: Dashboard,
-  },
-  {
-    path: '/get-started',
-    component: GetStarted,
   },
   {
     path: `/edit/:schemaName/:name`,
@@ -90,6 +88,21 @@ const routes: RouteRecordRaw[] = [
     path: '/setup',
     name: 'SetupHub',
     component: SetupHub,
+  },
+  {
+    path: '/sales-setup',
+    name: 'SalesSetup',
+    component: SalesSetup,
+  },
+  {
+    path: '/purchase-setup',
+    name: 'PurchaseSetup',
+    component: PurchaseSetup,
+  },
+  {
+    path: '/configure-sales-modules',
+    name: 'ConfigureSalesModules',
+    component: ConfigureSalesModules,
   },
   {
     path: '/report/:reportClassName',

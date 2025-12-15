@@ -3,7 +3,7 @@
     <div
       v-if="showTitle && title"
       class="flex justify-between items-center select-none"
-      :class="[collapsed ? '' : 'mb-4', collapsible ? 'cursor-pointer' : '']"
+      :class="[collapsed ? '' : 'mb-2', collapsible ? 'cursor-pointer' : '']"
       @click="toggleCollapsed"
     >
       <h2 class="text-base text-gray-900 dark:text-gray-25 font-semibold">
@@ -15,14 +15,20 @@
         class="w-4 h-4 text-gray-600 dark:text-gray-400"
       />
     </div>
-    <div v-if="!collapsed" class="grid gap-4 gap-x-8 grid-cols-2">
+    <div
+      v-if="!collapsed"
+      class="grid gap-2 gap-x-8"
+      :class="isSalesInvoiceTopFields ? 'grid-cols-3' : 'grid-cols-2'"
+    >
       <div
         v-for="field of fields"
         :key="field.fieldname"
+        :data-fieldname="field.fieldname"
         :class="[
-          field.fieldtype === 'Table' ? 'col-span-2 text-base' : '',
+          field.fieldtype === 'Table' ? (isSalesInvoiceTopFields ? 'col-span-3' : 'col-span-2') + ' text-base' : '',
           field.fieldtype === 'AttachImage' ? 'row-span-2' : '',
           field.fieldtype === 'Check' ? 'mt-auto' : 'mb-auto',
+          getSalesInvoiceFieldSpan(field.fieldname),
         ]"
       >
         <Table
@@ -84,6 +90,16 @@ export default defineComponent({
       collapsed: boolean;
     };
   },
+  computed: {
+    isSalesInvoiceTopFields(): boolean {
+      // Check if this is the Sales Invoice form and this section contains the top fields
+      if (this.$route.path.includes('SalesInvoice')) {
+        const fieldNames = this.fields.map(f => f.fieldname);
+        return fieldNames.includes('name') && fieldNames.includes('date');
+      }
+      return false;
+    },
+  },
   mounted() {
     focusOrSelectFormControl(this.doc, this.$refs.nameField);
   },
@@ -102,6 +118,59 @@ export default defineComponent({
 
       this.collapsed = !this.collapsed;
     },
+    getSalesInvoiceFieldSpan(fieldname: string): string {
+      // For Sales Invoice, make certain fields span appropriately in 3-column layout
+      if (this.isSalesInvoiceTopFields) {
+        // First row fields (name, date, quote) - each takes 1 column
+        if (['name', 'date', 'quote'].includes(fieldname)) {
+          return '';
+        }
+        // Second row fields and beyond - span across columns as needed
+        if (['party', 'account'].includes(fieldname)) {
+          return 'col-span-1';
+        }
+        if (fieldname === 'priceList') {
+          return 'col-span-1';
+        }
+      }
+      return '';
+    },
   },
 });
 </script>
+<style scoped>
+/* Make invoice number field slightly wider */
+[data-fieldname="name"] {
+  max-width: 280px !important;
+  width: 280px !important;
+}
+
+/* Make reference field same size as invoice number */
+[data-fieldname="quote"] {
+  max-width: 280px !important;
+  width: 280px !important;
+}
+
+/* Make customer field narrower and add space above it */
+[data-fieldname="party"] {
+  max-width: 300px !important;
+  width: 300px !important;
+  margin-top: 12px !important;
+}
+
+/* Add space above account field to match customer field */
+[data-fieldname="account"] {
+  margin-top: 12px !important;
+}
+
+/* Add space above priceList field to match other fields in the row */
+[data-fieldname="priceList"] {
+  margin-top: 12px !important;
+}
+
+/* Make date field narrower */
+[data-fieldname="date"] {
+  max-width: 200px !important;
+  width: 200px !important;
+}
+</style>

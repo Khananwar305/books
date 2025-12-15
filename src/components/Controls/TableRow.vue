@@ -6,7 +6,7 @@
   >
     <!-- Index or Remove button -->
     <div
-      class="flex items-center ps-2 text-gray-600 dark:text-gray-400"
+      class="flex items-center ps-2 text-gray-600 dark:text-gray-400 border-r dark:border-gray-800 h-full"
       @mouseenter="isRowIndexVisible = false"
       @mouseleave="isRowIndexVisible = true"
     >
@@ -61,16 +61,28 @@
     </div>
 
     <!-- Data Input Form Control -->
-    <FormControl
+    <div
       v-for="(df, i) in tableFields"
       :key="df.fieldname"
-      :size="size"
-      :df="df"
-      :value="row[df.fieldname]"
-      @change="(value) => onChange(df, value)"
-      @focus="onFieldFocus(i)"
-      @blur="onFieldBlur(i)"
-    />
+      class="flex items-center px-2 h-row-mid border-r dark:border-gray-800 w-full"
+    >
+      <DiscountToggle
+        v-if="df.fieldname === 'itemDiscountPercent'"
+        :doc="row"
+        :size="size"
+      />
+      <FormControl
+        v-else
+        class="w-full flex-1"
+        :size="size"
+        :df="df"
+        :value="row[df.fieldname]"
+        :container-styles="{ padding: '0', width: '100%' }"
+        @change="(value) => onChange(df, value)"
+        @focus="onFieldFocus(i)"
+        @blur="onFieldBlur(i)"
+      />
+    </div>
     <Button
       v-if="canEditRow"
       :icon="true"
@@ -101,6 +113,7 @@ import { getErrorMessage } from 'src/utils';
 import { computed, nextTick } from 'vue';
 import Button from '../Button.vue';
 import FormControl from './FormControl.vue';
+import DiscountToggle from './DiscountToggle.vue';
 
 export default {
   name: 'TableRow',
@@ -108,6 +121,7 @@ export default {
     Row,
     FormControl,
     Button,
+    DiscountToggle,
   },
   provide() {
     return {
@@ -181,3 +195,49 @@ export default {
   },
 };
 </script>
+<style scoped>
+/* Remove ALL padding from FormControl containers and inputs */
+:deep(.rounded) {
+  padding: 0 !important;
+  border: none !important;
+  background: transparent !important;
+  width: 100% !important;
+  max-width: none !important;
+}
+
+:deep(input),
+:deep(select),
+:deep(textarea) {
+  padding: 0 !important;
+  border: none !important;
+  background: transparent !important;
+  height: auto !important;
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 100% !important;
+  flex: 1 !important;
+}
+
+/* Prevent text wrapping */
+:deep(input[type="text"]),
+:deep(input[type="number"]),
+:deep(textarea) {
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+/* Link/AutoComplete inputs */
+:deep(.link-input),
+:deep(.autocomplete-input) {
+  padding: 0 !important;
+  width: 100% !important;
+  max-width: none !important;
+}
+
+/* Ensure FormControl wrapper expands */
+:deep(div) {
+  width: 100% !important;
+  max-width: none !important;
+}
+</style>

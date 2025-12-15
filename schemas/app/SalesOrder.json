@@ -1,0 +1,97 @@
+{
+  "name": "SalesOrder",
+  "label": "Sales Order",
+  "extends": "Invoice",
+  "naming": "manual",
+  "showTitle": true,
+  "fields": [
+    {
+      "fieldname": "name",
+      "label": "Order No",
+      "fieldtype": "Data",
+      "required": true,
+      "readOnly": false,
+      "hidden": false,
+      "section": "Default",
+      "columns": 1,
+      "placeholder": "Will be auto-generated on save"
+    },
+    {
+      "fieldname": "_numberingMethod",
+      "label": "Numbering Method",
+      "fieldtype": "Data",
+      "hidden": true,
+      "section": "Default"
+    },
+    {
+      "fieldname": "date",
+      "label": "Order Date",
+      "fieldtype": "Date",
+      "required": true,
+      "section": "Default"
+    },
+    {
+      "fieldname": "quote",
+      "label": "Quote Reference",
+      "fieldtype": "Link",
+      "target": "SalesQuote",
+      "section": "Default"
+    },
+    {
+      "fieldname": "party",
+      "label": "Customer",
+      "fieldtype": "Link",
+      "target": "Party",
+      "create": true,
+      "required": true,
+      "section": "Default"
+    },
+    {
+      "fieldname": "account",
+      "label": "Account",
+      "fieldtype": "Link",
+      "target": "Account",
+      "create": true,
+      "required": true,
+      "section": "Default"
+    },
+    {
+      "fieldname": "deliveryDate",
+      "label": "Delivery Date",
+      "fieldtype": "Date",
+      "section": "Default"
+    },
+    {
+      "fieldname": "terms",
+      "label": "Notes",
+      "placeholder": "Add sales order terms",
+      "fieldtype": "Text",
+      "section": "References"
+    },
+    {
+      "fieldname": "items",
+      "label": "Items",
+      "fieldtype": "Table",
+      "target": "SalesOrderItem",
+      "required": true,
+      "edit": true,
+      "section": "Items"
+    },
+    {
+      "fieldname": "fullyInvoiced",
+      "label": "Fully Invoiced",
+      "fieldtype": "Check",
+      "default": false,
+      "readOnly": true,
+      "hidden": true
+    }
+  ],
+  "keywordFields": ["name", "party"],
+  "removeFields": [
+    "stockNotTransferred",
+    "backReference",
+    "makeAutoStockTransfer",
+    "returnAgainst",
+    "isReturned"
+  ]
+}

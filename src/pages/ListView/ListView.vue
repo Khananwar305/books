@@ -157,7 +157,10 @@ export default defineComponent({
 
       const filters = getCreateFiltersFromListViewFilters(this.filters ?? {});
       const doc = fyo.doc.getNewDoc(this.schemaName, filters);
-      const route = getFormRoute(this.schemaName, doc.name!);
+
+      // Use the temporary name for routing, or 'new' if name is empty
+      const docName = doc.name && doc.name.trim() !== '' ? doc.name : 'new';
+      const route = getFormRoute(this.schemaName, docName);
       await routeTo(route);
     },
     applyFilter(filters: QueryFilter) {

@@ -1,5 +1,5 @@
 import { Fyo, t } from 'fyo';
-import { Action, ListViewSettings, ValidationMap } from 'fyo/model/types';
+import { Action, ChangeArg, FiltersMap, FormulaMap, HiddenMap, ListViewSettings, ReadOnlyMap, ValidationMap } from 'fyo/model/types';
 import { LedgerPosting } from 'models/Transactional/LedgerPosting';
 import { ModelNameEnum } from 'models/types';
 import {
@@ -11,16 +11,19 @@ import {
 import { Invoice } from '../Invoice/Invoice';
 import { SalesInvoiceItem } from '../SalesInvoiceItem/SalesInvoiceItem';
 import { LoyaltyProgram } from '../LoyaltyProgram/LoyaltyProgram';
-import { DocValue } from 'fyo/core/types';
+import { DocValue, DocValueMap } from 'fyo/core/types';
 import { Party } from '../Party/Party';
 import { ValidationError } from 'fyo/utils/errors';
 import { Money } from 'pesa';
 import { Doc } from 'fyo/model/doc';
 import { EInvoiceService } from './eInvoiceService';
 import { showDialog } from 'src/utils/interactive';
+import { Schema } from 'schemas/types';
 
 export class SalesInvoice extends Invoice {
   items?: SalesInvoiceItem[];
+  referenceType?: 'SalesQuote' | 'SalesOrder';
+  quote?: string;
   eInvoiceGenerated?: boolean;
   irn?: string;
   ackNo?: string;
@@ -29,6 +32,307 @@ export class SalesInvoice extends Invoice {
   eInvoiceCancelled?: boolean;
   cancelDate?: Date;
   cancelRemark?: string;
+  _numberingMethod?: string;
+  _isNumberingMethodLoaded?: boolean;
+  _isNewInvoice?: boolean;
+
+  constructor(schema: Schema, data: DocValueMap, fyo: Fyo) {
+    super(schema, data, fyo);
+
+    // Set invoice number immediately for new documents
+    if (!this.inserted && !this.name) {
+      this.setInvoiceNumberPreview();
+    }
+  }
+
+  async setInvoiceNumberPreview() {
+    try {
+      const salesModuleConfig = await this.getActiveSalesModuleConfig();
+      if (!salesModuleConfig || salesModuleConfig.numberingMethod !== 'Automatic') {
+        return;
+      }
+
+      const numberSeriesName = salesModuleConfig.numberSeries as string;
+      if (!numberSeriesName) {
+        return;
+      }
+
+      // Load the NumberSeries and ensure it has fresh data from database
+      const numberSeries = await this.fyo.doc.getDoc('NumberSeries', numberSeriesName);
+      await numberSeries.load(); // Reload from database to get latest value
+
+      const nextPreview = numberSeries.getNextPreview();
+      console.log('[SalesInvoice] Setting preview number:', nextPreview);
+      this.name = nextPreview;
+    } catch (error) {
+      console.error('[SalesInvoice] Error setting preview:', error);
+    }
+  }
+
+  async beforeSync() {
+    await super.beforeSync();
+
+    // Only process numbering for new invoices (not updates)
+    if (this.inserted) {
+      return;
+    }
+
+    // Mark this as a new invoice so afterSync knows to update counter
+    this._isNewInvoice = true;
+
+    console.log('[SalesInvoice beforeSync] Processing new invoice. Current name:', this.name);
+
+    // Get active SalesModule configuration for SalesInvoice
+    const salesModuleConfig = await this.getActiveSalesModuleConfig();
+
+    // Ensure numberSeries is always set
+    if (salesModuleConfig) {
+      const numberSeriesName = salesModuleConfig.numberSeries as string;
+      if (numberSeriesName && !this.numberSeries) {
+        this.numberSeries = numberSeriesName;
+      }
+    } else {
+      // Fallback: try to get default numberSeries from AccountingSettings
+      const accountingSettings = await this.fyo.doc.getDoc('AccountingSettings');
+      const defaultNumberSeries = accountingSettings.get('salesInvoiceNumberSeries');
+      if (defaultNumberSeries && !this.numberSeries) {
+        this.numberSeries = defaultNumberSeries as string;
+      }
+    }
+
+    // For new unsaved invoices in automatic mode
+    if (salesModuleConfig) {
+      const isAutomaticMode = salesModuleConfig.numberingMethod === 'Automatic';
+      console.log('[SalesInvoice beforeSync] Mode:', salesModuleConfig.numberingMethod);
+
+      if (isAutomaticMode) {
+        // Auto mode: check if preview number is available, otherwise get next
+        try {
+          const numberSeriesName = salesModuleConfig.numberSeries as string;
+          if (!numberSeriesName) {
+            throw new ValidationError(this.fyo.t`Number series not configured for this document type`);
+          }
+
+          // Check if current name (from preview) is still available
+          if (this.name && this.name.trim() !== '') {
+            const exists = await this.fyo.db.exists(this.schemaName, this.name);
+            if (!exists) {
+              // Preview number is still available, use it
+              // We'll update the counter in afterSync (after successful save)
+              console.log('[SalesInvoice beforeSync] Preview number available, will use:', this.name);
+              return;
+            } else {
+              console.log('[SalesInvoice beforeSync] Preview number taken, getting next...');
+            }
+          }
+
+          // Preview number is taken or not set, generate a new one
+          const numberSeries = await this.fyo.doc.getDoc('NumberSeries', numberSeriesName);
+          this.name = await numberSeries.next(this.schemaName);
+
+          console.log('[SalesInvoice beforeSync] Generated new invoice number:', this.name);
+        } catch (error) {
+          console.error('[SalesInvoice beforeSync] Error generating invoice number:', error);
+          throw error;
+        }
+      } else {
+        // Manual mode: user must enter invoice number
+        if (!this.name || this.name.trim() === '') {
+          throw new ValidationError(this.fyo.t`Please enter invoice number in Manual mode`);
+        }
+        console.log('[SalesInvoice beforeSync] Manual mode - using user-entered number:', this.name);
+      }
+    } else {
+      // Fallback to old logic if no SalesModule configuration exists
+      console.log('[SalesInvoice beforeSync] No SalesModule config, using fallback');
+      const accountingSettings = await this.fyo.doc.getDoc('AccountingSettings');
+      const isManualMode = accountingSettings.get('enableManualInvoiceNumbering');
+
+      if (!isManualMode) {
+        try {
+          this.name = await accountingSettings.generateNextInvoiceNumber();
+          const defaultNumberSeries = accountingSettings.get('salesInvoiceNumberSeries');
+          if (defaultNumberSeries) {
+            this.numberSeries = defaultNumberSeries as string;
+          }
+          console.log('[SalesInvoice beforeSync] Fallback generated number:', this.name);
+        } catch (error) {
+          console.error('Error generating invoice number:', error);
+          throw error;
+        }
+      }
+    }
+
+    // Final validation: ensure numberSeries is set
+    if (!this.numberSeries) {
+      throw new ValidationError(
+        this.fyo.t`Number Series is required. Please configure it in Sales Module Settings or Accounting Settings.`
+      );
+    }
+  }
+
+  async getActiveSalesModuleConfig() {
+    try {
+      const configs = await this.fyo.db.getAllRaw('SalesModule', {
+        fields: ['name', 'numberingMethod', 'numberSeries', 'isActive'],
+        filters: { referenceType: 'SalesInvoice' },
+      });
+
+      if (configs && configs.length > 0) {
+        // Return the first active configuration, or the first one if none are explicitly active
+        const activeConfig = configs.find(c => c.isActive !== false) || configs[0];
+        console.log('[SalesInvoice] Found active config:', {
+          name: activeConfig.name,
+          numberingMethod: activeConfig.numberingMethod,
+          numberSeries: activeConfig.numberSeries,
+          isActive: activeConfig.isActive
+        });
+        return activeConfig;
+      }
+      console.log('[SalesInvoice] No SalesModule configurations found for SalesInvoice');
+      return null;
+    } catch (error) {
+      console.error('[SalesInvoice] Error fetching SalesModule configuration:', error);
+      return null;
+    }
+  }
+
+  async handleReferenceChange() {
+    if (!this.referenceType || !this.quote) {
+      return;
+    }
+
+    // Check for existing items and show confirmation
+    const hasExistingItems = (this.items?.length ?? 0) > 0;
+
+    if (hasExistingItems) {
+      const confirmed = await showDialog({
+        title: this.fyo.t`Replace Existing Items?`,
+        detail: this.fyo.t`This invoice already has items. Do you want to replace them with items from the selected reference?`,
+        type: 'warning',
+        buttons: [
+          { label: this.fyo.t`Cancel`, action: () => false, isEscape: true },
+          { label: this.fyo.t`Replace`, action: () => true, isPrimary: true },
+        ],
+      });
+
+      if (!confirmed) {
+        this.quote = undefined;
+        return;
+      }
+
+      this.items = [];
+    }
+
+    // Load reference document
+    try {
+      const referenceDoc = await this.fyo.doc.getDoc(
+        this.referenceType,
+        this.quote
+      ) as Invoice;
+
+      // Validate submission
+      if (!referenceDoc.isSubmitted) {
+        await showDialog({
+          title: this.fyo.t`Invalid Reference`,
+          detail: this.fyo.t`The selected ${this.referenceType} is not submitted yet.`,
+          type: 'error',
+        });
+        this.quote = undefined;
+        return;
+      }
+
+      // Copy items
+      for (const row of referenceDoc.items ?? []) {
+        await this.append('items', row.getValidDict(false, true));
+      }
+
+      // Copy party if not set
+      if (!this.party && referenceDoc.party) {
+        this.party = referenceDoc.party;
+      }
+
+      // Copy account if not set (and exists on reference)
+      if (!this.account && referenceDoc.account) {
+        this.account = referenceDoc.account;
+      }
+    } catch (error) {
+      await showDialog({
+        title: this.fyo.t`Reference Not Found`,
+        detail: this.fyo.t`The selected reference document could not be loaded.`,
+        type: 'error',
+      });
+      this.quote = undefined;
+    }
+  }
+
+  async afterSync() {
+    await super.afterSync();
+
+    // Update NumberSeries counter after successful save
+    // This ensures the counter is only updated when the invoice is actually saved
+    if (this._isNewInvoice) {
+      // This was a new invoice that just got saved
+      await this.updateNumberSeriesCounter();
+      this._isNewInvoice = false; // Reset flag
+    }
+  }
+
+  async updateNumberSeriesCounter() {
+    try {
+      const salesModuleConfig = await this.getActiveSalesModuleConfig();
+      if (!salesModuleConfig || salesModuleConfig.numberingMethod !== 'Automatic') {
+        return;
+      }
+
+      const numberSeriesName = salesModuleConfig.numberSeries as string;
+      if (!numberSeriesName || !this.name) {
+        return;
+      }
+
+      const numberSeries = await this.fyo.doc.getDoc('NumberSeries', numberSeriesName);
+      await numberSeries.load();
+
+      // Extract the numeric part from the invoice number
+      const invoiceNumber = this.name.replace(numberSeriesName, '');
+      const numericValue = parseInt(invoiceNumber, 10);
+
+      // Only update if this number is greater than current
+      if (!isNaN(numericValue) && numericValue > (numberSeries.current as number)) {
+        numberSeries.current = numericValue;
+        await numberSeries.sync();
+        console.log('[SalesInvoice afterSync] Updated NumberSeries current to:', numericValue);
+      }
+    } catch (error) {
+      console.error('[SalesInvoice afterSync] Error updating NumberSeries:', error);
+      // Don't throw - the invoice is already saved
+    }
+  }
+
+  async afterSubmit() {
+    await super.afterSubmit();
+    await this.updateReferenceInvoicedStatus();
+  }
+
+  async afterCancel() {
+    await super.afterCancel();
+    await this.updateReferenceInvoicedStatus();
+  }
+
+  async updateReferenceInvoicedStatus() {
+    if (!this.referenceType || !this.quote) {
+      return;
+    }
+
+    try {
+      const refDoc = await this.fyo.doc.getDoc(this.referenceType, this.quote);
+      const hasRemaining = await (refDoc as any).hasRemainingQuantity();
+
+      await refDoc.setAndSync('fullyInvoiced', !hasRemaining);
+    } catch (error) {
+      console.error('Error updating reference invoiced status:', error);
+    }
+  }
 
   async getPosting() {
     const exchangeRate = this.exchangeRate ?? 1;
@@ -83,16 +387,8 @@ export class SalesInvoice extends Invoice {
       }
     }
 
-    const discountAmount = this.getTotalDiscount();
-    const discountAccount = this.fyo.singles.AccountingSettings
-      ?.discountAccount as string | undefined;
-    if (discountAccount && discountAmount.isPositive()) {
-      if (this.isReturn) {
-        await posting.credit(discountAccount, discountAmount.mul(exchangeRate));
-      } else {
-        await posting.debit(discountAccount, discountAmount.mul(exchangeRate));
-      }
-    }
+    // Discount is applied at item level and reflected in item amounts
+    // No separate discount GL entry needed
 
     await posting.makeRoundOffEntry();
     return posting;
@@ -293,4 +589,77 @@ export class SalesInvoice extends Invoice {
 
     return [...invoiceActions, ...eInvoiceActions];
   }
+
+
+  async change({ changed }: ChangeArg) {
+    await super.change({ changed });
+
+    if (changed === 'referenceType') {
+      this.quote = undefined;
+    }
+
+    if (changed === 'quote' && this.quote) {
+      await this.handleReferenceChange();
+    }
+  }
+
+  formulas: FormulaMap = {
+    _numberingMethod: {
+      formula: async () => {
+        const config = await this.getActiveSalesModuleConfig();
+        if (config && config.numberingMethod) {
+          return config.numberingMethod as string;
+        }
+        return 'Manual';
+      },
+      dependsOn: [],
+    },
+  };
+
+  readOnly: ReadOnlyMap = {
+    name: () => {
+      if (this.inserted) {
+        return true;
+      }
+
+      // Check if numbering method is loaded
+      if (this._numberingMethod) {
+        const isAutomatic = this._numberingMethod === 'Automatic';
+        console.log('[SalesInvoice readOnly] Method:', this._numberingMethod, ', ReadOnly:', isAutomatic);
+        return isAutomatic;
+      }
+
+      // Default to editable (Manual mode) until loaded
+      // This ensures the field is accessible while loading
+      console.log('[SalesInvoice readOnly] Not loaded yet, defaulting to editable');
+      return false;
+    },
+  };
+
+  hidden: HiddenMap = {
+    quote: () => !this.referenceType, // Only show when reference type is selected
+  };
+
+  static filters: FiltersMap = {
+    quote: (doc: Doc) => {
+      const invoice = doc as SalesInvoice;
+
+      if (!invoice.referenceType) {
+        return { name: ['is', null] };
+      }
+
+      const filter: any = {
+        submitted: true,
+        cancelled: false,
+        fullyInvoiced: false, // Only show partially invoiced references
+      };
+
+      if (invoice.party) {
+        filter.party = invoice.party;
+      }
+
+      return filter;
+    },
+  };
+
 }

@@ -2,17 +2,25 @@
   "name": "SalesQuote",
   "label": "Quote",
   "extends": "Invoice",
-  "naming": "numberSeries",
+  "naming": "manual",
   "showTitle": true,
   "fields": [
     {
-      "fieldname": "numberSeries",
-      "label": "Number Series",
-      "fieldtype": "Link",
-      "target": "NumberSeries",
-      "create": true,
+      "fieldname": "name",
+      "label": "Quote No",
+      "fieldtype": "Data",
       "required": true,
-      "default": "SQUOT-",
+      "section": "Default",
+      "columns": 1,
+      "placeholder": "Will be auto-generated on save",
+      "hidden": false,
+      "readOnly": false
+    },
+    {
+      "fieldname": "_numberingMethod",
+      "label": "Numbering Method",
+      "fieldtype": "Data",
+      "hidden": true,
       "section": "Default"
     },
     {
@@ -40,6 +48,7 @@
       "references": "referenceType",
       "create": true,
       "required": true,
+      "readOnly": false,
       "section": "Default"
     },
     {
@@ -57,6 +66,14 @@
       "required": true,
       "edit": true,
       "section": "Items"
+    },
+    {
+      "fieldname": "fullyInvoiced",
+      "label": "Fully Invoiced",
+      "fieldtype": "Check",
+      "default": false,
+      "readOnly": true,
+      "hidden": true
     }
   ],
   "keywordFields": ["name", "party"],

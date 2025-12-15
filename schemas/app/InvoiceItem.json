@@ -21,7 +21,7 @@
     {
       "fieldname": "description",
       "label": "Description",
-      "fieldtype": "Text"
+      "fieldtype": "Data"
     },
     {
       "fieldname": "rate",
@@ -109,9 +109,10 @@
     },
     {
       "fieldname": "itemDiscountPercent",
-      "label": "Discount Percent",
+      "label": "Discount",
       "fieldtype": "Float",
-      "readOnly": false
+      "readOnly": false,
+      "placeholder": "% or Amount"
     },
     {
       "fieldname": "itemDiscountedTotal",
@@ -140,7 +141,7 @@
       "readOnly": true
     }
   ],
-  "tableFields": ["item", "tax", "quantity", "rate", "amount"],
+  "tableFields": ["item", "description", "hsnCode", "itemDiscountPercent", "tax", "quantity", "rate", "amount"],
   "keywordFields": ["item", "tax"],
   "quickEditFields": [
     "item",

@@ -176,6 +176,29 @@ export class AccountingSettings extends Doc {
   enableLoyaltyProgram?: boolean;
   enablePricingRule?: boolean;
   enaenableItemEnquiry?: boolean;
+  enableManualInvoiceNumbering?: boolean;
+  invoiceNumberPrefix?: string;
+  currentInvoiceNumber?: number;
+
+  /**
+   * Get the next invoice number with optional prefix
+   */
+  getNextInvoiceNumber(): string {
+    const prefix = this.invoiceNumberPrefix || '';
+    const number = this.currentInvoiceNumber || 1;
+    return `${prefix}${number}`;
+  }
+
+  /**
+   * Increment the invoice counter and return the new number
+   */
+  async generateNextInvoiceNumber(): Promise<string> {
+    const nextNumber = this.getNextInvoiceNumber();
+    const newCounter = (this.currentInvoiceNumber || 1) + 1;
+    await this.set('currentInvoiceNumber', newCounter);
+    await this.sync();
+    return nextNumber;
+  }
   enableERPNextSync?: boolean;
   enablePointOfSaleWithOutInventory?: boolean;
   enablePartialPayment?: boolean;
@@ -241,7 +264,12 @@ export class AccountingSettings extends Doc {
   };
 
   validations: ValidationMap = {
-    email: validateEmail,
+    email: (value: unknown) => {
+      // Only validate email if it has a value
+      if (value && typeof value === 'string' && value.trim().length > 0) {
+        validateEmail(value);
+      }
+    },
   };
 
   static lists: ListsMap = {

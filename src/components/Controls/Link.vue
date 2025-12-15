@@ -11,19 +11,33 @@ export default {
   name: 'Link',
   extends: AutoComplete,
   data() {
-    return { results: [], filtersDisabled: false };
+    return {
+      results: [],
+      filtersDisabled: false,
+      nextNumberPreview: '',
+    };
+  },
+  computed: {
+    inputPlaceholder() {
+      // For numberSeries fields, show the complete next invoice number as placeholder
+      if (this.df?.fieldname === 'numberSeries' && this.nextNumberPreview) {
+        return this.nextNumberPreview;
+      }
+      // Default behavior from Base.vue
+      return this.placeholder || this.df?.placeholder || this.df?.label;
+    },
   },
   watch: {
     value: {
       immediate: true,
-      handler(newValue) {
-        this.setLinkValue(newValue);
+      async handler(newValue) {
+        await this.setLinkValue(newValue);
       },
     },
   },
-  mounted() {
+  async mounted() {
     if (this.value) {
-      this.setLinkValue();
+      await this.setLinkValue();
     }
   },
   props: {
@@ -36,6 +50,17 @@ export default {
     }
   },
   methods: {
+    async updateNextNumberPreview(numberSeriesName) {
+      try {
+        const numberSeriesDoc = await fyo.doc.getDoc('NumberSeries', numberSeriesName);
+        if (numberSeriesDoc && typeof numberSeriesDoc.getNextPreview === 'function') {
+          this.nextNumberPreview = numberSeriesDoc.getNextPreview();
+        }
+      } catch (error) {
+        console.error('Error fetching next number preview:', error);
+        this.nextNumberPreview = '';
+      }
+    },
     async setLinkValue(newValue, isInput) {
       if (isInput) {
         return (this.linkValue = newValue || '');
@@ -43,6 +68,21 @@ export default {
 
       const value = newValue ?? this.value;
       const { fieldname, target } = this.df ?? {};
+
+      // Special handling for numberSeries field - show complete next invoice number
+      if (fieldname === 'numberSeries' && value && !this.doc?.inserted) {
+        try {
+          const numberSeriesDoc = await fyo.doc.getDoc('NumberSeries', value);
+          if (numberSeriesDoc && typeof numberSeriesDoc.getNextPreview === 'function') {
+            const completeNumber = numberSeriesDoc.getNextPreview();
+            this.nextNumberPreview = completeNumber;
+            return (this.linkValue = completeNumber);
+          }
+        } catch (error) {
+          console.error('Error fetching next number:', error);
+        }
+      }
+
       const linkDisplayField = fyo.schemaMap[target ?? '']?.linkDisplayField;
       if (!linkDisplayField) {
         return (this.linkValue = value);

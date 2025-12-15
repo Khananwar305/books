@@ -171,7 +171,12 @@ export default defineComponent({
 
           return fyo.getField(this.schemaName, fieldname);
         })
-        .filter(Boolean);
+        .filter((field) => {
+          // Filter out null/undefined fields and hidden fields
+          if (!field) return false;
+          if (field.hidden === true) return false;
+          return true;
+        });
     },
   },
   watch: {

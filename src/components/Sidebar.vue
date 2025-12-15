@@ -33,21 +33,31 @@
           data-testid="company-name"
           class="
             font-semibold
-            whitespace-nowrap
-            overflow-auto
-            no-scrollbar
             select-none
             transition-opacity
             duration-300
           "
-          style="color: #1565c0; font-size: 1.2rem; letter-spacing: 0.5px;"
+          :title="companyName"
+          style="
+            color: #000000;
+            font-size: 1.3rem;
+            letter-spacing: 0.8px;
+            font-weight: 700;
+            text-transform: uppercase;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            max-width: 100%;
+            display: block;
+          "
         >
           {{ companyName }}
         </h6>
         <div
           v-else
           class="flex justify-center items-center w-full"
-          style="color: #1565c0; font-size: 1.5rem; font-weight: bold;"
+          :title="companyName"
+          style="color: #000000; font-size: 1.5rem; font-weight: 800; letter-spacing: 1px;"
         >
           {{ companyName.charAt(0).toUpperCase() }}
         </div>
@@ -89,8 +99,8 @@
             class="ms-2 text-base transition-opacity duration-300"
             :style="
               isGroupActive(group) && !group.items
-                ? 'color: #1565c0; font-weight: 600;'
-                : 'color: #546e7a; font-weight: 500;'
+                ? 'color: #000000; font-weight: 700; font-size: 15px; letter-spacing: 0.3px;'
+                : 'color: #000000; font-weight: 600; font-size: 15px; letter-spacing: 0.2px;'
             "
           >
             {{ group.label }}
@@ -114,8 +124,8 @@
             "
             :style="
               isItemActive(item)
-                ? 'background: #ffffff; color: #1565c0; border-radius: 8px; margin: 2px 8px; font-weight: 600; border-left: 3px solid #42a5f5;'
-                : 'color: #546e7a; margin: 2px 8px; border-radius: 8px; font-weight: 500;'
+                ? 'background: #ffffff; color: #000000; border-radius: 8px; margin: 2px 8px; font-weight: 700; border-left: 3px solid #1565c0; font-size: 14px; letter-spacing: 0.2px;'
+                : 'color: #000000; margin: 2px 8px; border-radius: 8px; font-weight: 600; font-size: 14px; letter-spacing: 0.15px;'
             "
             @mouseover="(e) => !isItemActive(item) && (e.currentTarget.style.background = 'rgba(255, 255, 255, 0.6)')"
             @mouseout="(e) => !isItemActive(item) && (e.currentTarget.style.background = '')"
@@ -145,9 +155,9 @@
         "
         :class="isExpanded ? '' : 'justify-center'"
         :title="!isExpanded ? t`Help` : ''"
-        style="color: #546e7a;"
-        @mouseover="(e) => { e.currentTarget.style.background = 'rgba(255, 255, 255, 0.6)'; e.currentTarget.style.color = '#1565c0'; }"
-        @mouseout="(e) => { e.currentTarget.style.background = ''; e.currentTarget.style.color = '#546e7a'; }"
+        style="color: #000000; font-weight: 600; font-size: 13px; letter-spacing: 0.2px;"
+        @mouseover="(e) => { e.currentTarget.style.background = 'rgba(255, 255, 255, 0.6)'; e.currentTarget.style.color = '#000000'; e.currentTarget.style.fontWeight = '700'; }"
+        @mouseout="(e) => { e.currentTarget.style.background = ''; e.currentTarget.style.color = '#000000'; e.currentTarget.style.fontWeight = '600'; }"
         @click="openDocumentation"
       >
         <feather-icon name="help-circle" class="h-4 w-4 flex-shrink-0" />
@@ -170,9 +180,9 @@
         "
         :class="isExpanded ? '' : 'justify-center'"
         :title="!isExpanded ? t`Shortcuts` : ''"
-        style="color: #546e7a;"
-        @mouseover="(e) => { e.currentTarget.style.background = 'rgba(255, 255, 255, 0.6)'; e.currentTarget.style.color = '#1565c0'; }"
-        @mouseout="(e) => { e.currentTarget.style.background = ''; e.currentTarget.style.color = '#546e7a'; }"
+        style="color: #000000; font-weight: 600; font-size: 13px; letter-spacing: 0.2px;"
+        @mouseover="(e) => { e.currentTarget.style.background = 'rgba(255, 255, 255, 0.6)'; e.currentTarget.style.color = '#000000'; e.currentTarget.style.fontWeight = '700'; }"
+        @mouseout="(e) => { e.currentTarget.style.background = ''; e.currentTarget.style.color = '#000000'; e.currentTarget.style.fontWeight = '600'; }"
         @click="viewShortcuts = true"
       >
         <feather-icon name="command" class="h-4 w-4 flex-shrink-0" />
@@ -194,9 +204,9 @@
         "
         :class="isExpanded ? '' : 'justify-center'"
         :title="!isExpanded ? t`Change DB` : ''"
-        style="color: #546e7a;"
-        @mouseover="(e) => { e.currentTarget.style.background = 'rgba(255, 255, 255, 0.6)'; e.currentTarget.style.color = '#1565c0'; }"
-        @mouseout="(e) => { e.currentTarget.style.background = ''; e.currentTarget.style.color = '#546e7a'; }"
+        style="color: #000000; font-weight: 600; font-size: 13px; letter-spacing: 0.2px;"
+        @mouseover="(e) => { e.currentTarget.style.background = 'rgba(255, 255, 255, 0.6)'; e.currentTarget.style.color = '#000000'; e.currentTarget.style.fontWeight = '700'; }"
+        @mouseout="(e) => { e.currentTarget.style.background = ''; e.currentTarget.style.color = '#000000'; e.currentTarget.style.fontWeight = '600'; }"
         @click="$emit('change-db-file')"
       >
         <feather-icon name="database" class="h-4 w-4 flex-shrink-0" />
@@ -217,9 +227,9 @@
         "
         :class="isExpanded ? '' : 'justify-center'"
         :title="!isExpanded ? t`Report Issue` : ''"
-        style="color: #546e7a;"
-        @mouseover="(e) => { e.currentTarget.style.background = 'rgba(255, 255, 255, 0.6)'; e.currentTarget.style.color = '#1565c0'; }"
-        @mouseout="(e) => { e.currentTarget.style.background = ''; e.currentTarget.style.color = '#546e7a'; }"
+        style="color: #000000; font-weight: 600; font-size: 13px; letter-spacing: 0.2px;"
+        @mouseover="(e) => { e.currentTarget.style.background = 'rgba(255, 255, 255, 0.6)'; e.currentTarget.style.color = '#000000'; e.currentTarget.style.fontWeight = '700'; }"
+        @mouseout="(e) => { e.currentTarget.style.background = ''; e.currentTarget.style.color = '#000000'; e.currentTarget.style.fontWeight = '600'; }"
         @click="() => reportIssue()"
       >
         <feather-icon name="flag" class="h-4 w-4 flex-shrink-0" />

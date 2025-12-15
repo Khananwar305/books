@@ -29,7 +29,7 @@
     </template>
     <template v-if="hasDoc" #header>
       <Button
-        v-if="canShowLinks"
+        v-if="canShowLinks && schemaName !== 'SalesModule'"
         :icon="true"
         :title="t`View linked entries`"
         @click="showLinks = true"
@@ -37,7 +37,7 @@
         <feather-icon name="link" class="w-4 h-4"></feather-icon>
       </Button>
       <Button
-        v-if="canPrint"
+        v-if="canPrint && schemaName !== 'SalesModule'"
         ref="printButton"
         :icon="true"
         :title="t`Open Print View`"
@@ -56,6 +56,7 @@
         ></feather-icon>
       </Button>
       <DropdownWithActions
+        v-if="schemaName !== 'SalesModule'"
         v-for="group of groupedActions"
         :key="group.label"
         :type="group.type"
@@ -66,6 +67,16 @@
         </p>
         <feather-icon v-else name="more-horizontal" class="w-4 h-4" />
       </DropdownWithActions>
+      <Button
+        v-if="schemaName !== 'SalesModule'"
+        :icon="false"
+        :title="t`Settings`"
+        class="bg-blue-500 hover:bg-blue-600 text-white"
+        @click="openInvoiceSettings"
+      >
+        <feather-icon name="settings" class="w-4 h-4"></feather-icon>
+        <span class="ml-2">{{ t`Settings` }}</span>
+      </Button>
       <Button v-if="doc?.canSave" type="primary" @click="sync">
         {{ t`Save` }}
       </Button>
@@ -93,7 +104,16 @@
         v-if="hasDoc"
         class="overflow-auto custom-scroll custom-scroll-thumb1"
       >
+        <!-- Custom view for SalesModule -->
+        <SalesModuleConfigView
+          v-if="schemaName === 'SalesModule'"
+          :doc="doc"
+          class="p-4"
+        />
+
+        <!-- Standard form sections for other schemas -->
         <CommonFormSection
+          v-else
           v-for="([n, fields], idx) in activeGroup.entries()"
           :key="n + idx"
           ref="section"
@@ -116,7 +136,7 @@
 
       <!-- Tab Bar -->
       <div
-        v-if="groupedFields && groupedFields.size > 1"
+        v-if="groupedFields && groupedFields.size > 1 && schemaName !== 'SalesModule'"
         class="
           mt-auto
           px-4
@@ -207,6 +227,7 @@ import { computed, defineComponent, inject, nextTick, ref } from 'vue';
 import CommonFormSection from './CommonFormSection.vue';
 import LinkedEntries from './LinkedEntries.vue';
 import RowEditForm from './RowEditForm.vue';
+import SalesModuleConfigView from 'src/components/SalesModuleConfigView.vue';
 
 export default defineComponent({
   components: {
@@ -220,6 +241,7 @@ export default defineComponent({
     LinkedEntries,
     RowEditForm,
     StatusPill,
+    SalesModuleConfigView,
   },
   provide() {
     return {
@@ -335,7 +357,7 @@ export default defineComponent({
 
       return getDocStatus(this.doc);
     },
-    doc(): Doc {
+  doc(): Doc {
       const doc = this.docOrNull;
       if (!doc) {
         throw new ValidationError(
@@ -346,6 +368,10 @@ export default defineComponent({
     },
     title(): string {
       if (this.schema.isSubmittable && this.docOrNull?.notInserted) {
+        // Show schema-specific title for new entries
+        if (this.schemaName === 'SalesInvoice') {
+          return this.t`New Sales Invoice`;
+        }
         return this.t`New Entry`;
       }
 
@@ -426,6 +452,12 @@ export default defineComponent({
       const value = !this.useFullWidth;
       await this.fyo.singles.Misc?.setAndSync('useFullWidth', value);
       this.useFullWidth = value;
+    },
+    openInvoiceSettings() {
+      // Settings button action - customize this based on your needs
+      console.log('Settings button clicked for:', this.doc?.schemaName);
+      // You can add your custom settings logic here
+      // For example: open a settings modal, navigate to settings page, etc.
     },
     updateGroupedFields(): void {
       if (!this.hasDoc) {

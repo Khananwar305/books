@@ -101,15 +101,6 @@ function getReportSidebar() {
 function getCompleteSidebar(): SidebarConfig {
   return [
     {
-      label: t`Get Started`,
-      name: 'get-started',
-      route: '/get-started',
-      icon: 'general',
-      iconSize: '24',
-      iconHeight: 5,
-      hidden: () => !!fyo.singles.SystemSettings?.hideGetStarted,
-    },
-    {
       label: t`Dashboard`,
       name: 'dashboard',
       route: '/',
@@ -126,6 +117,12 @@ function getCompleteSidebar(): SidebarConfig {
           name: 'sales-quotes',
           route: '/list/SalesQuote',
           schemaName: 'SalesQuote',
+        },
+        {
+          label: t`Sales Orders`,
+          name: 'sales-orders',
+          route: '/list/SalesOrder',
+          schemaName: 'SalesOrder',
         },
         {
           label: t`Sales Invoices`,

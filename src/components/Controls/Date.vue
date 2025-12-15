@@ -133,8 +133,10 @@ export default defineComponent({
       nextTick(() => {
         this.focus();
 
+        // Don't auto-show picker to allow manual typing
+        // Users can still click the calendar icon in the input to open picker
         // @ts-ignore
-        this.$refs.input.showPicker();
+        // this.$refs.input.showPicker();
       });
     },
   },

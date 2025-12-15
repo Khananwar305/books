@@ -13,6 +13,8 @@ import { LoyaltyProgram } from './baseModels/LoyaltyProgram/LoyaltyProgram';
 import { LoyaltyPointEntry } from './baseModels/LoyaltyPointEntry/LoyaltyPointEntry';
 import { CollectionRulesItems } from './baseModels/CollectionRulesItems/CollectionRulesItems';
 import { Lead } from './baseModels/Lead/Lead';
+import { Role } from './baseModels/Role/Role';
+import { User } from './baseModels/User/User';
 import { AppliedCouponCodes } from './baseModels/AppliedCouponCodes/AppliedCouponCodes';
 import { CouponCode } from './baseModels/CouponCode/CouponCode';
 import { Payment } from './baseModels/Payment/Payment';
@@ -30,6 +32,9 @@ import { SalesInvoice } from './baseModels/SalesInvoice/SalesInvoice';
 import { SalesInvoiceItem } from './baseModels/SalesInvoiceItem/SalesInvoiceItem';
 import { SalesQuote } from './baseModels/SalesQuote/SalesQuote';
 import { SalesQuoteItem } from './baseModels/SalesQuoteItem/SalesQuoteItem';
+import { SalesOrder } from './baseModels/SalesOrder/SalesOrder';
+import { SalesOrderItem } from './baseModels/SalesOrderItem/SalesOrderItem';
+import SalesModule from './baseModels/SalesModule/SalesModule';
 import { SetupWizard } from './baseModels/SetupWizard/SetupWizard';
 import { ItemGroup } from './baseModels/ItemGroup/ItemGroup';
 import { Tax } from './baseModels/Tax/Tax';
@@ -73,6 +78,8 @@ export const models = {
   JournalEntryAccount,
   Misc,
   Lead,
+  Role,
+  User,
   Party,
   LoyaltyProgram,
   LoyaltyPointEntry,
@@ -93,6 +100,9 @@ export const models = {
   AppliedCouponCodes,
   SalesQuote,
   SalesQuoteItem,
+  SalesOrder,
+  SalesOrderItem,
+  SalesModule,
   SerialNumber,
   SetupWizard,
   PrintTemplate,
